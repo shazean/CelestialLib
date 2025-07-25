@@ -37,7 +37,6 @@ public class PlanetPortalTeleporter implements ITeleporter {
     protected final PoiType poi;
     final Block portalFrameBlock;
     final Block portalBlock;
-    //    final IPortal portal;
     final ResourceKey<Level> dimension;
 
     public PlanetPortalTeleporter(ServerLevel worldIn, PoiType poi, Block portalFrameBlock, Block portalBlock, ResourceKey<Level> dimension) {

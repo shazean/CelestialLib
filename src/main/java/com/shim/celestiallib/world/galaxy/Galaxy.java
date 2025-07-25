@@ -1,13 +1,15 @@
 package com.shim.celestiallib.world.galaxy;
 
 import com.shim.celestiallib.CelestialLib;
+import com.shim.celestiallib.util.CelestialUtil;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 public class Galaxy extends ForgeRegistryEntry<Galaxy> {
@@ -15,9 +17,11 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> {
     private final ResourceKey<Level> dimension;
     boolean isLocked = false;
     boolean isHidden = false;
-    private ResourceLocation icon;
+    private ResourceLocation icon = new ResourceLocation(CelestialLib.MODID, "textures/gui/light_speed_travel/galaxy_icons/default_galaxy.png"); //DEFAULT
     private ResourceLocation backgroundImage;
     private int backgroundImageSize;
+    private ItemStack lightSpeedCost;
+    private int guiScale = 2;
 
     public static final Map<ResourceKey<Level>, Galaxy> DIMENSIONS = new HashMap<>();
 
@@ -41,6 +45,12 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> {
         return DIMENSIONS.keySet().stream().toList().get(0);
     }
 
+    public static List<Galaxy> getAlphabetizedList() {
+        List<Galaxy> list = new ArrayList<>(DIMENSIONS.values().stream().toList());
+        list.sort(Comparator.comparing(galaxy -> CelestialUtil.getDisplayName(galaxy.getDimension()).getString()));
+        return list;
+    }
+
     public int getGalaxyRatio() {
         return this.galaxyRatioConfig.apply(dimension);
     }
@@ -49,7 +59,7 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> {
         return DIMENSIONS.containsKey(dimension);
     }
 
-    public Galaxy setLocked(boolean isHidden) {
+    public Galaxy lockedAndMaybeHidden(boolean isHidden) {
         //TODO accept a criteria for unlocking
         this.isLocked = true;
         this.isHidden = isHidden;
@@ -81,5 +91,34 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> {
         return this.backgroundImage;
     }
 
+    public int getBackgroundImageSize() {
+        return this.backgroundImageSize;
+    }
 
+    public Galaxy lightSpeedCost(ItemStack itemStack) {
+        this.lightSpeedCost = itemStack;
+        return this;
+    }
+
+    public ItemStack getLightSpeedCost() {
+        return this.lightSpeedCost;
+    }
+
+    public int getGuiScale() {
+        return this.guiScale;
+    }
+
+    public Galaxy guiScale(int scale) {
+        this.guiScale = Mth.clamp(scale, 1, 6);
+        return this;
+    }
+
+    public static List<Galaxy> getVisibleGalaxies() {
+        ArrayList<Galaxy> unlockedGalaxies = new ArrayList<>();
+        for (Galaxy galaxy : DIMENSIONS.values()) {
+            if (!galaxy.isHidden)
+                unlockedGalaxies.add(galaxy);
+        }
+        return unlockedGalaxies;
+    }
 }

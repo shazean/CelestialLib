@@ -3,7 +3,10 @@ package com.shim.celestiallib.util;
 import com.shim.celestiallib.util.teleportation.AbstractCelestialTeleportData;
 import com.shim.celestiallib.util.teleportation.CelestialCoordinateTeleport;
 import com.shim.celestiallib.world.planet.Planet;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -12,6 +15,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CelestialUtil {
+
+    public static TranslatableComponent getDisplayName(ResourceKey<Level> dimension) {
+        return new TranslatableComponent("dimension." + dimension.location().getNamespace() + "." + dimension.location().getPath());
+    }
 
     //Credit to: https://stackoverflow.com/questions/481144/equation-for-testing-if-a-point-is-inside-a-circle
     public static boolean isInRectangle(int centerX, int centerY, int radius, int x, int y) {
@@ -58,11 +65,10 @@ public class CelestialUtil {
     }
 
 
-    public static Vec3 getDimensionToSpaceCoordinates(ResourceKey<Level> dimension, ChunkPos pos) {
+    public static BlockPos getDimensionToSpaceCoordinates(ResourceKey<Level> dimension, ChunkPos pos) {
         Vec3 coord = getDimensionLocation(dimension).getOutputCoordinates(pos.x, pos.z); //new Vec3(CE_DIMENSION_LOCATION.get(dimension).x() * CelestialUtil.getSpaceRatio(), 0, CE_DIMENSION_LOCATION.get(dimension).z() * CelestialUtil.getSpaceRatio()); //getDimensionLocation(dimension).getOutputCoordinates(pos.x, pos.z); //FIXME
         if (coord == null) coord = defaultDimensionLocation.getOutputCoordinates(pos.x, pos.z);
-        coord = new Vec3(coord.x * 16, 145.0, coord.z * 16); //convert from chunk to block pos
-        return coord;
+        return new BlockPos(coord.x * 16, 145.0, coord.z * 16);
     }
 
     protected static final Map<ResourceKey<Level>, Vec3> PLANET_LOCATIONS = new HashMap<>();
@@ -83,10 +89,15 @@ public class CelestialUtil {
         PLANET_LOCATIONS.clear();
     }
 
-    public static Vec3 getPlanetaryChunkCoordinates(ResourceKey<Level> planet) {
+    public static ChunkPos getPlanetaryChunkCoordinates(ResourceKey<Level> planet) {
         Vec3 coord = getPlanetLocation(planet);
         int galaxyRatio = Planet.getPlanet(planet).getGalaxy().getGalaxyRatio();
-        coord = new Vec3(coord.x * galaxyRatio, coord.y, coord.z * galaxyRatio);
-        return coord;
+        return new ChunkPos((int) coord.x * galaxyRatio, (int) coord.z * galaxyRatio);
+    }
+
+    public static BlockPos getPlanetBlockCoordinates(ResourceKey<Level> planet) {
+        Vec3 coord = getPlanetLocation(planet);
+        int galaxyRatio = Planet.getPlanet(planet).getGalaxy().getGalaxyRatio();
+        return new BlockPos(coord.x * galaxyRatio * 16, coord.y, coord.z * galaxyRatio * 16);
     }
 }

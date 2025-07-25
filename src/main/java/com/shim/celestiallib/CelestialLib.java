@@ -8,6 +8,9 @@ import com.shim.celestiallib.data.CLibPlanetManager;
 import com.shim.celestiallib.effects.CelestialLibEffects;
 import com.shim.celestiallib.events.CLibCommonEventSetup;
 import com.shim.celestiallib.inventory.CLibMenus;
+import com.shim.celestiallib.util.ClientProxy;
+import com.shim.celestiallib.util.IProxy;
+import com.shim.celestiallib.util.ServerProxy;
 import com.shim.celestiallib.world.galaxy.Galaxies;
 import com.shim.celestiallib.world.planet.Planets;
 import com.shim.celestiallib.world.structures.CLibStructures;
@@ -17,6 +20,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
@@ -57,6 +61,7 @@ public class CelestialLib {
         MinecraftForge.EVENT_BUS.register(this);
     }
 
+    public static final IProxy PROXY = DistExecutor.unsafeRunForDist(()-> ClientProxy::new, ()-> ServerProxy::new);
 
     private void enqueueIMC(final InterModEnqueueEvent event) {
         // Some example code to dispatch IMC to another mod

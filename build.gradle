@@ -98,7 +98,7 @@ minecraft {
         server {
             property 'forge.enabledGameTestNamespaces', mod_id
             args '--nogui'
-            arg "-mixin.config=celestialexploration.mixins.json"
+            arg "-mixin.config=celestiallib.mixins.json"
 
         }
 
@@ -112,7 +112,7 @@ minecraft {
         data {
             // example of overriding the workingDirectory set in configureEach above
             workingDirectory project.file('run-data')
-            arg "-mixin.config=celestialexploration.mixins.json"
+            arg "-mixin.config=celestiallib.mixins.json"
 
             // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
             args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
@@ -131,6 +131,10 @@ repositories {
     // flatDir {
     //     dir 'libs'
     // }
+        maven {
+        url 'https://cursemaven.com'
+    }
+
 }
 
 dependencies {
@@ -154,6 +158,11 @@ dependencies {
     // This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar
     // The group id is ignored when searching -- in this case, it is "blank"
     // implementation fg.deobf("blank:coolmod-${mc_version}:${coolmod_version}")
+
+    implementation fg.deobf("curse.maven:fastload-630620:4706140")
+    implementation fg.deobf("curse.maven:modernfix-790626:5399365")
+    implementation fg.deobf("curse.maven:lightspeedmod-821790:4594803")
+    implementation fg.deobf("curse.maven:lazy-dfu-forge-460819:3544496")
 
     // For more info:
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html

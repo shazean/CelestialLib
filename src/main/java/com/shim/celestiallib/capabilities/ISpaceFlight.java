@@ -13,6 +13,15 @@ public interface ISpaceFlight {
      **/
     boolean canSpaceTravel(Entity entity);
 
+    /**
+     * Similar to canSpaceTravel, but this check is called when light speed travel is attempted
+     * Can be overridden to allow for unique checks
+     * @param entity The entity to do the check on
+     */
+    default boolean canLightSpeedTravel(Entity entity) {
+        return this.canSpaceTravel(entity);
+    }
+
     int getTeleportationCooldown();
     void setTeleportationCooldown(int cooldown);
     void decrementTeleportationCooldown();

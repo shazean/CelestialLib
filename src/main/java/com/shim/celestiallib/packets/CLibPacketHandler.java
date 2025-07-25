@@ -29,6 +29,15 @@ public class CLibPacketHandler {
         INSTANCE.registerMessage(i++, LightSpeedMenuPacket.class, LightSpeedMenuPacket::encoder,
                 LightSpeedMenuPacket::decoder, LightSpeedMenuPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
 
+        INSTANCE.registerMessage(i++, DoLightTravelPacket.class, DoLightTravelPacket::encoder,
+                DoLightTravelPacket::decoder, DoLightTravelPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+
+        INSTANCE.registerMessage(i++, ServerDidLightTravelPacket.class, ServerDidLightTravelPacket::encoder,
+                ServerDidLightTravelPacket::decoder, ServerDidLightTravelPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+
+//        INSTANCE.registerMessage(i++, ServerResetLightTravelPacket.class, ServerResetLightTravelPacket::encoder,
+//                ServerResetLightTravelPacket::decoder, ServerResetLightTravelPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+
 
     }
 }

@@ -96,7 +96,7 @@ public class CLibForgeEventBus {
                         //determine where in space we're teleporting to
                         BlockPos pos = new BlockPos(spaceVehicle.position().x, spaceVehicle.position().y, spaceVehicle.position().z);
 
-                        Vec3 teleportLocation = CelestialUtil.getDimensionToSpaceCoordinates(spaceVehicle.level.dimension(), new ChunkPos(pos));
+                        BlockPos teleportLocation = CelestialUtil.getDimensionToSpaceCoordinates(spaceVehicle.level.dimension(), new ChunkPos(pos));
 
                         //teleport and reset capability cooldown
                         TeleportUtil.teleport(spaceVehicle, passengers, destination, teleportLocation);
@@ -144,7 +144,7 @@ public class CLibForgeEventBus {
                                     }
 
                                     //teleport and reset cooldown
-                                    TeleportUtil.teleport(spaceVehicle, passengers, destination, spaceVehicle.position());
+                                    TeleportUtil.teleport(spaceVehicle, passengers, destination, spaceVehicle.blockPosition());
                                     flightCap.resetTeleportationCooldown();
 
                                 } else {

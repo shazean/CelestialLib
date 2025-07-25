@@ -24,7 +24,14 @@ public class CLibLangProvider extends LanguageProvider {
         add("celestial.teleport.message_2", " in… ");
 
 
-        add("menu.celestiallib.light_speed_travel_menu", "Light Speed Travel Menu");
+        add("menu.celestiallib.light_speed_travel.title", "Light Speed Travel");
+        add("menu.celestiallib.light_speed_travel.cost", "Cost:");
+        add("menu.celestiallib.light_speed_travel.travel", "Travel");
+        add("menu.celestiallib.light_speed_travel.have", "Have: ");
+        add("menu.celestiallib.light_speed_travel.need", "Need: ");
+
+
+
         add("key.categories.celestiallib.light_speed.light_speed_travel", "Open Light Speed Travel Menu");
 
     }

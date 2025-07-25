@@ -1,15 +1,14 @@
 package com.shim.celestiallib.util;
 
-import com.google.common.collect.ImmutableList;
 import com.shim.celestiallib.CelestialLib;
-import com.shim.celestiallib.world.galaxy.Galaxies;
+import com.shim.celestiallib.capabilities.CLibCapabilities;
+import com.shim.celestiallib.capabilities.ISpaceFlight;
+import com.shim.celestiallib.packets.CLibPacketHandler;
+import com.shim.celestiallib.packets.ServerDidLightTravelPacket;
 import com.shim.celestiallib.world.galaxy.Galaxy;
 import com.shim.celestiallib.world.planet.Planet;
 import com.shim.celestiallib.world.portal.CelestialTeleporter;
-import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
-import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceKey;
@@ -23,6 +22,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.network.NetworkDirection;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -61,7 +61,7 @@ public class TeleportUtil {
 //                        new TranslatableComponent("dimension." + destination.location().getNamespace() + "." + destination.location().getPath()).getString() + " in… " + teleportCooldown / 20), true);
 
                 player.displayClientMessage(new TranslatableComponent("celestial.teleport.message_1")
-                        .append(Planet.getName(destination)
+                        .append(CelestialUtil.getDisplayName(destination)
                                 .append(new TranslatableComponent("celestial.teleport.message_2"))
                                 .append(new TextComponent("" + teleportCooldown / 20))), true);
             } else if (teleportCooldown == 0) {
@@ -129,8 +129,42 @@ public class TeleportUtil {
         return null;
     }
 
+    public static void handleLightSpeedTravel(ServerPlayer player, Entity spaceVehicle, ArrayList<Entity> passengers, ResourceKey<Level> galaxy, BlockPos planetPos) {
+        TeleportUtil.teleport(spaceVehicle, passengers, galaxy, planetPos);
 
-    public static void teleport(Entity spaceVehicle, @Nullable ArrayList<Entity> passengers, ResourceKey<Level> destinationDim, Vec3 locationInPlace) {
+        ArrayList<Integer> entityIds = new ArrayList<>();
+        for (Entity entity : passengers) {
+            entityIds.add(entity.getId());
+        }
+
+        CLibPacketHandler.INSTANCE.sendTo(new ServerDidLightTravelPacket(spaceVehicle.getId(), entityIds, planetPos), player.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
+
+    }
+
+    public static void finishLightSpeedTravel(Entity spaceVehicle, ArrayList<Entity> passengers, BlockPos planetPos) {
+
+        ISpaceFlight flightCap = CelestialLib.getCapability(spaceVehicle, CLibCapabilities.SPACE_FLIGHT_CAPABILITY);
+
+        if (flightCap != null) {
+
+            if (spaceVehicle.level.isClientSide()) {
+                spaceVehicle.moveTo(planetPos, 0, 0);
+
+                if (passengers != null) {
+                    for (Entity passenger : passengers) {
+                        if (passenger != null) {
+                            passenger.moveTo(planetPos, 0, 0);
+                            passenger.startRiding(spaceVehicle);
+                        }
+                    }
+                }
+            }
+        }
+
+
+    }
+
+    public static void teleport(Entity spaceVehicle, @Nullable ArrayList<Entity> passengers, ResourceKey<Level> destinationDim, BlockPos locationInPlace) {
         if (spaceVehicle.canChangeDimensions()) {
 
             //get server and level
@@ -142,7 +176,9 @@ public class TeleportUtil {
 
                     //if we're teleporting FROM a galaxy, passengers' Y level should be the max build height minus 10 blocks
                     if (!(Galaxy.isGalaxyDimension(destinationDim))) {
-                        locationInPlace = new Vec3(locationInPlace.x, destinationWorld.getMaxBuildHeight() - 10, locationInPlace.z);
+                        locationInPlace = new BlockPos(locationInPlace.getX(), destinationWorld.getMaxBuildHeight() - 10, locationInPlace.getZ());
+                    } else {
+                        locationInPlace = new BlockPos(locationInPlace.getX(), 120, locationInPlace.getZ());
                     }
 
                     //move players to the right coordinates BEFORE changing dimensions
@@ -153,10 +189,10 @@ public class TeleportUtil {
                     if (!entityWorld.isClientSide) {
                         ServerLevel level = (ServerLevel) spaceVehicle.getLevel();
                         level.getProfiler().push("placing");
-                        spaceVehicle.moveTo(locationInPlace);
+                        spaceVehicle.moveTo(locationInPlace, 0.0F, 0.0F);
                         if (passengers != null) {
                             for (Entity passenger : passengers) {
-                                passenger.moveTo(locationInPlace);
+                                passenger.moveTo(locationInPlace, 0.0F, 0.0F);
                             }
                         }
                         level.getProfiler().pop();

@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.world.galaxy.Galaxy;
 import com.shim.celestiallib.world.planet.Planet;
 import net.minecraft.core.Registry;
@@ -18,6 +19,9 @@ import java.util.Map;
 
 public class ClibGalaxyImageManager extends SimpleJsonResourceReloadListener {
     private static final Gson GSON = (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
+    private static final int MIN = 210;
+    private static final int MAX = 1024;
+
 
     public ClibGalaxyImageManager() {
         super(GSON, "models/celestial/galaxy_background");
@@ -31,11 +35,16 @@ public class ClibGalaxyImageManager extends SimpleJsonResourceReloadListener {
             JsonObject json = element.getAsJsonObject();
 
             ResourceLocation dimension = new ResourceLocation(GsonHelper.getAsString(json, "galaxy"));
-            ResourceLocation texture = new ResourceLocation(GsonHelper.getAsString(json, "texture"));
+            String[] resource = GsonHelper.getAsString(json, "texture").split(":");
+            String namespace = resource[0];
+            String path = resource[1];
+
+            ResourceLocation texture = new ResourceLocation(namespace, "textures/" + path + ".png");
+
             int size = GsonHelper.getAsInt(json, "size");
 
-            if (size < 210 || size > 256) {
-                throw new IllegalStateException("Galaxy background image size is out of bounds. Must be within sizes 4 and 256, inclusive");
+            if (size < MIN || size > MAX) {
+                throw new IllegalStateException(String.format("Galaxy background image size is out of bounds. Must be within sizes %d and %d, inclusive", MIN, MAX));
             }
 
             Galaxy galaxy = Galaxy.getGalaxy(ResourceKey.create(Registry.DIMENSION_REGISTRY, dimension));

@@ -17,6 +17,11 @@ public class SpaceVehicleFlightHandler implements ISpaceFlight {
     }
 
     @Override
+    public boolean canLightSpeedTravel(Entity entity) {
+        return true;
+    }
+
+    @Override
     public int getTeleportationCooldown() {
         return teleportationCooldown;
     }
