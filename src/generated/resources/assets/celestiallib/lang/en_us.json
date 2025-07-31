@@ -1,0 +1,13 @@
+{
+  "celestial.teleport.message_1": "Teleporting to ",
+  "celestial.teleport.message_2": " in\u2026 ",
+  "effect.celestiallib.extra_low_gravity": "Extra Low Gravity",
+  "effect.celestiallib.high_gravity": "High Gravity",
+  "effect.celestiallib.low_gravity": "Low Gravity",
+  "key.categories.celestiallib.light_speed.light_speed_travel": "Open Light Speed Travel Menu",
+  "menu.celestiallib.light_speed_travel.cost": "Cost:",
+  "menu.celestiallib.light_speed_travel.have": "Have: ",
+  "menu.celestiallib.light_speed_travel.need": "Need: ",
+  "menu.celestiallib.light_speed_travel.title": "Light Speed Travel",
+  "menu.celestiallib.light_speed_travel.travel": "Travel"
+}
