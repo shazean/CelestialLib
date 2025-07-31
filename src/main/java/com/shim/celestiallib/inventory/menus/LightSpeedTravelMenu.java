@@ -64,72 +64,42 @@ public class LightSpeedTravelMenu extends AbstractContainerMenu {
     public void handleLightSpeedTravel(Galaxy galaxy, Planet planet) {
         CelestialLib.LOGGER.debug("should be doing light speed travel now…");
 
-        Player player = CelestialLib.PROXY.getPlayer();
+
+        Player player = this.playerInventory.player;
         Entity spaceVehicle = null;
 
-        if (player != null) {
-
-            ISpaceFlight flightCap = CelestialLib.getCapability(player, CLibCapabilities.SPACE_FLIGHT_CAPABILITY);
-            if (flightCap != null) spaceVehicle = player;
-            else {
-                if (player.getVehicle() != null) {
-                    flightCap = CelestialLib.getCapability(player.getVehicle(), CLibCapabilities.SPACE_FLIGHT_CAPABILITY);
-                    if (flightCap != null) spaceVehicle = player.getVehicle();
-                }
+        ISpaceFlight flightCap = CelestialLib.getCapability(player, CLibCapabilities.SPACE_FLIGHT_CAPABILITY);
+        if (flightCap != null) spaceVehicle = player;
+        else {
+            if (player.getVehicle() != null) {
+                flightCap = CelestialLib.getCapability(player.getVehicle(), CLibCapabilities.SPACE_FLIGHT_CAPABILITY);
+                if (flightCap != null) spaceVehicle = player.getVehicle();
             }
+        }
 
-            if (spaceVehicle != null) {
-                if (flightCap.canLightSpeedTravel(spaceVehicle)) {
+        if (spaceVehicle != null) {
+            if (flightCap.canLightSpeedTravel(spaceVehicle)) {
 
-                    BlockPos planetPos = CelestialUtil.getPlanetBlockCoordinates(planet.getDimension());
-
-                    ArrayList<Integer> entityIds = null;
-                    if (flightCap.getAdditionalEntitiesToTeleport(spaceVehicle) != null && !flightCap.getAdditionalEntitiesToTeleport(spaceVehicle).isEmpty()) {
-                        entityIds = new ArrayList<>();
-                        for (Entity entity : flightCap.getAdditionalEntitiesToTeleport(spaceVehicle)) {
-                            entityIds.add(entity.getId());
-                        }
+                ArrayList<Integer> entityIds = null;
+                if (flightCap.getAdditionalEntitiesToTeleport(spaceVehicle) != null && !flightCap.getAdditionalEntitiesToTeleport(spaceVehicle).isEmpty()) {
+                    entityIds = new ArrayList<>();
+                    for (Entity entity : flightCap.getAdditionalEntitiesToTeleport(spaceVehicle)) {
+                        entityIds.add(entity.getId());
                     }
+                }
 
-                    CelestialLib.LOGGER.debug("should be sending packet next…");
 
-                    if (spaceVehicle instanceof Player || spaceVehicle.getControllingPassenger() == player) {
+                if (spaceVehicle instanceof Player || spaceVehicle.getControllingPassenger() == player) {
 
-                        //TODO
+                    //TODO
 //                        CLibPacketHandler.INSTANCE.sendToServer(new ServerResetLightTravelPacket(spaceVehicle.getFirstPassenger().getId(), galaxy));
 
 
-                    }
-
-                    int galaxyCost = galaxy.getLightSpeedCost().getCount();
-                    int planetCost = planet.getLightSpeedCost().getCount();
-
-                    while (galaxyCost > 0) {
-                        for (ItemStack item : this.playerInventory.items) {
-                            if (item.is(galaxy.getLightSpeedCost().getItem())) {
-                                int i = Math.min(item.getCount(), galaxyCost);
-                                galaxyCost -= i;
-                                item.shrink(i);
-                                if (galaxyCost == 0) break;
-                            }
-                        }
-                    }
-
-                    while (planetCost > 0) {
-                        CelestialLib.LOGGER.debug("running remove planet cost items…");
-                        for (ItemStack item : this.playerInventory.items) {
-                            if (item.is(planet.getLightSpeedCost().getItem())) {
-                                int i = Math.min(item.getCount(), planetCost);
-                                planetCost -= i;
-                                item.shrink(i);
-                                if (planetCost == 0) break;
-                            }
-                        }
-                    }
-
-                    CLibPacketHandler.INSTANCE.sendToServer(new DoLightTravelPacket(spaceVehicle.getId(), entityIds, galaxy.getDimension(), planetPos));
-
                 }
+
+                CelestialLib.LOGGER.debug("should be sending packet next…");
+                CLibPacketHandler.INSTANCE.sendToServer(new DoLightTravelPacket(spaceVehicle.getId(), entityIds, galaxy.getDimension(), planet.getDimension()));
+
             }
         }
     }

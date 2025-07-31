@@ -6,6 +6,7 @@ import com.shim.celestiallib.data.client.CLibPlanetIconManager;
 import com.shim.celestiallib.data.client.ClibGalaxyImageManager;
 import com.shim.celestiallib.inventory.CLibMenus;
 import com.shim.celestiallib.inventory.screens.LightSpeedTravelScreen;
+import com.shim.celestiallib.inventory.screens.SingleGalaxyLightSpeedScreen;
 import com.shim.celestiallib.util.CLibKeybinds;
 import com.shim.celestiallib.world.renderer.DimensionRenderers;
 import net.minecraft.client.gui.screens.MenuScreens;
@@ -28,6 +29,7 @@ public class CLibClientEventBus {
         event.enqueueWork(DimensionRenderers::setDimensionEffects);
 
         MenuScreens.register(CLibMenus.LIGHT_SPEED_TRAVEL_MENU.get(), LightSpeedTravelScreen::new);
+        MenuScreens.register(CLibMenus.SINGLE_GALAXY_LIGHT_SPEED_TRAVEL_MENU.get(), SingleGalaxyLightSpeedScreen::new);
 
     }
 

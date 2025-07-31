@@ -132,9 +132,12 @@ public class TeleportUtil {
     public static void handleLightSpeedTravel(ServerPlayer player, Entity spaceVehicle, ArrayList<Entity> passengers, ResourceKey<Level> galaxy, BlockPos planetPos) {
         TeleportUtil.teleport(spaceVehicle, passengers, galaxy, planetPos);
 
-        ArrayList<Integer> entityIds = new ArrayList<>();
-        for (Entity entity : passengers) {
-            entityIds.add(entity.getId());
+        ArrayList<Integer> entityIds = null;
+        if (passengers != null) {
+            entityIds = new ArrayList<>();
+            for (Entity entity : passengers) {
+                entityIds.add(entity.getId());
+            }
         }
 
         CLibPacketHandler.INSTANCE.sendTo(new ServerDidLightTravelPacket(spaceVehicle.getId(), entityIds, planetPos), player.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
@@ -160,12 +163,12 @@ public class TeleportUtil {
                 }
             }
         }
-
-
     }
 
     public static void teleport(Entity spaceVehicle, @Nullable ArrayList<Entity> passengers, ResourceKey<Level> destinationDim, BlockPos locationInPlace) {
         if (spaceVehicle.canChangeDimensions()) {
+
+            CelestialLib.LOGGER.debug("teleporting");
 
             //get server and level
             Level entityWorld = spaceVehicle.level;
@@ -174,11 +177,11 @@ public class TeleportUtil {
                 ServerLevel destinationWorld = minecraftserver.getLevel(destinationDim);
                 if (destinationWorld != null) {
 
-                    //if we're teleporting FROM a galaxy, passengers' Y level should be the max build height minus 10 blocks
+                    //if we're teleporting FROM a galaxy, travelers' Y level should be the max build height minus 10 blocks (so as to not immediately start a teleport back TO space)
                     if (!(Galaxy.isGalaxyDimension(destinationDim))) {
                         locationInPlace = new BlockPos(locationInPlace.getX(), destinationWorld.getMaxBuildHeight() - 10, locationInPlace.getZ());
-                    } else {
-                        locationInPlace = new BlockPos(locationInPlace.getX(), 120, locationInPlace.getZ());
+                    } else { //otherwise grab y value from galaxy
+                        locationInPlace = new BlockPos(locationInPlace.getX(), Galaxy.getGalaxy(destinationDim).getYHeight(), locationInPlace.getZ());
                     }
 
                     //move players to the right coordinates BEFORE changing dimensions
@@ -189,17 +192,23 @@ public class TeleportUtil {
                     if (!entityWorld.isClientSide) {
                         ServerLevel level = (ServerLevel) spaceVehicle.getLevel();
                         level.getProfiler().push("placing");
-                        spaceVehicle.moveTo(locationInPlace, 0.0F, 0.0F);
-                        if (passengers != null) {
-                            for (Entity passenger : passengers) {
-                                passenger.moveTo(locationInPlace, 0.0F, 0.0F);
-                            }
-                        }
+                        CelestialLib.LOGGER.debug("before moving, entity loc: " + spaceVehicle.position());
+
+                        teleportTo(locationInPlace, spaceVehicle, passengers);
+
+//                        spaceVehicle.moveTo(locationInPlace, 0.0F, 0.0F);
+                        CelestialLib.LOGGER.debug("after moving, entity loc: " + spaceVehicle.position());
+//
+//                        if (passengers != null) {
+//                            for (Entity passenger : passengers) {
+//                                passenger.moveTo(locationInPlace, 0.0F, 0.0F);
+//                            }
+//                        }
                         level.getProfiler().pop();
                     }
 
                     Entity newSpaceVehicle = null;
-                    if (!spaceVehicle.level.dimension().equals(destinationDim)) {
+//                    if (!spaceVehicle.level.dimension().equals(destinationDim)) {
                         //check if spaceVehicle is a player or not
                         //because for all entities NOT players, changing dimensions returns a new instance of the entity with the same data
                         //but you do NOT create a new instance of a player
@@ -209,7 +218,7 @@ public class TeleportUtil {
                         } else {
                             newSpaceVehicle = spaceVehicle.changeDimension(destinationWorld, new CelestialTeleporter(destinationWorld));
                         }
-                    }
+//                    }
 
                     //this assumes that if the player is the spaceVehicle, that there are not additional passengers besides the player
                     if (newSpaceVehicle != null && passengers != null) {
@@ -217,7 +226,7 @@ public class TeleportUtil {
                         for (Entity passenger : passengers) {
                             Entity newPassenger = null;
                             if (!passenger.level.dimension().equals(destinationDim)) {
-                                //check if they're players or not to handle changing dimensions appropriately
+                                //check if they're players or not to handle changing dimensions appropriately (see above)
                                 if (passenger instanceof Player) {
                                     passenger.changeDimension(destinationWorld, new CelestialTeleporter(destinationWorld));
                                 } else {
@@ -237,6 +246,28 @@ public class TeleportUtil {
                     }
                 }
             }
+        }
+    }
+
+    public static void teleportTo(BlockPos pos, Entity entity, ArrayList<Entity> passengers) {
+        if (entity.level instanceof ServerLevel) {
+            entity.moveTo(pos.getX(), pos.getY(), pos.getZ(), entity.getYRot(), entity.getXRot());
+
+            if (passengers != null) {
+                passengers.forEach((e) -> {
+                    for (Entity passenger : e.getPassengers()) {
+                        positionRider(entity, passenger, Entity::moveTo);
+                    }
+                });
+            }
+
+        }
+    }
+
+    private static void positionRider(Entity entity, Entity rider, Entity.MoveFunction moveFunction) {
+        if (entity.hasPassenger(rider)) {
+            double d0 = entity.getY() + entity.getPassengersRidingOffset() + rider.getMyRidingOffset();
+            moveFunction.accept(rider, entity.getX(), d0, entity.getZ());
         }
     }
 

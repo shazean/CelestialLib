@@ -3,6 +3,7 @@ package com.shim.celestiallib.packets;
 import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.capabilities.CLibCapabilities;
 import com.shim.celestiallib.capabilities.ISpaceFlight;
+import com.shim.celestiallib.util.TeleportUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -74,22 +75,36 @@ public class ServerDidLightTravelPacket {
             if (serverPlayer != null) {
 
                 Entity entity = serverPlayer.level.getEntity(message.spaceVehicleId);
-                ISpaceFlight flightCap = CelestialLib.getCapability(entity, CLibCapabilities.SPACE_FLIGHT_CAPABILITY);
 
-                if (flightCap != null) {
+                ArrayList<Entity> passengers = null;
 
-                    entity.moveTo(message.planetPos.getX(), message.planetPos.getY(), message.planetPos.getZ());
-
-                    if (message.additionalEntities != null) {
-                        for (int entityId : message.additionalEntities) {
-                            Entity passenger = serverPlayer.level.getEntity(entityId);
-                            if (passenger != null) {
-                                passenger.moveTo(message.planetPos.getX(), message.planetPos.getY(), message.planetPos.getZ());
-                                passenger.startRiding(entity);
-                            }
-                        }
+                if (message.additionalEntities != null) {
+                    passengers = new ArrayList<>();
+                    for (int entityId : message.additionalEntities) {
+                        passengers.add(serverPlayer.level.getEntity(entityId));
                     }
                 }
+
+
+                TeleportUtil.finishLightSpeedTravel(entity, passengers, message.planetPos);
+
+//                Entity entity = serverPlayer.level.getEntity(message.spaceVehicleId);
+//                ISpaceFlight flightCap = CelestialLib.getCapability(entity, CLibCapabilities.SPACE_FLIGHT_CAPABILITY);
+//
+//                if (flightCap != null) {
+//
+//                    entity.moveTo(message.planetPos.getX(), message.planetPos.getY(), message.planetPos.getZ());
+//
+//                    if (message.additionalEntities != null) {
+//                        for (int entityId : message.additionalEntities) {
+//                            Entity passenger = serverPlayer.level.getEntity(entityId);
+//                            if (passenger != null) {
+//                                passenger.moveTo(message.planetPos.getX(), message.planetPos.getY(), message.planetPos.getZ());
+//                                passenger.startRiding(entity);
+//                            }
+//                        }
+//                    }
+//                }
             }
         });
         context.setPacketHandled(true);

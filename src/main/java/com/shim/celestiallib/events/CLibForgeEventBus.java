@@ -52,7 +52,6 @@ public class CLibForgeEventBus {
             }
         }
 
-
         if (Galaxy.isGalaxyDimension(player.level.dimension())) {
             //Warn players they're approaching min Y levels in outer space
             if (player.position().y <= player.level.getMinBuildHeight()) {
@@ -81,8 +80,7 @@ public class CLibForgeEventBus {
                     ResourceKey<Level> destination = TeleportUtil.getGalaxyDestination(spaceVehicle.level.dimension());
 
                     if (destination == null) {
-                        //TODO open galaxy gui… probably send a packet?
-                        //should this end the teleport logic and let the gui call something to resume?
+                        CLibPacketHandler.INSTANCE.sendToServer(new LightSpeedMenuPacket());
                         return;
                     }
 

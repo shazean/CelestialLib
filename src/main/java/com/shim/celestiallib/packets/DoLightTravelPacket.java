@@ -3,7 +3,10 @@ package com.shim.celestiallib.packets;
 import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.capabilities.CLibCapabilities;
 import com.shim.celestiallib.capabilities.ISpaceFlight;
+import com.shim.celestiallib.util.CelestialUtil;
 import com.shim.celestiallib.util.TeleportUtil;
+import com.shim.celestiallib.world.galaxy.Galaxy;
+import com.shim.celestiallib.world.planet.Planet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;
@@ -11,6 +14,8 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkDirection;
@@ -25,19 +30,18 @@ public class DoLightTravelPacket {
     private final int spaceVehicleId;
     @Nullable private final ArrayList<Integer> additionalEntities;
     private final ResourceKey<Level> galaxy;
-    private final BlockPos planetPos;
+    private final ResourceKey<Level> planet;
 
-
-    public DoLightTravelPacket(int spaceVehicleId, @Nullable ArrayList<Integer> additionalEntitiesToTeleport, ResourceLocation galaxy, BlockPos planetPos) {
-        this(spaceVehicleId, additionalEntitiesToTeleport, ResourceKey.create(Registry.DIMENSION_REGISTRY, galaxy), planetPos);
+    public DoLightTravelPacket(int spaceVehicleId, @Nullable ArrayList<Integer> additionalEntitiesToTeleport, ResourceLocation galaxy, ResourceLocation planet) {
+        this(spaceVehicleId, additionalEntitiesToTeleport, ResourceKey.create(Registry.DIMENSION_REGISTRY, galaxy), ResourceKey.create(Registry.DIMENSION_REGISTRY, planet));
     }
 
-    public DoLightTravelPacket(int spaceVehicleId, @Nullable ArrayList<Integer> additionalEntitiesToTeleport, ResourceKey<Level> galaxy, BlockPos planetPos) {
+    public DoLightTravelPacket(int spaceVehicleId, @Nullable ArrayList<Integer> additionalEntitiesToTeleport, ResourceKey<Level> galaxy, ResourceKey<Level> planet) {
 
         this.spaceVehicleId = spaceVehicleId;
         this.additionalEntities = additionalEntitiesToTeleport;
         this.galaxy = galaxy;
-        this.planetPos = planetPos;
+        this.planet = planet;
 
     }
 
@@ -55,9 +59,7 @@ public class DoLightTravelPacket {
         }
 
         buffer.writeResourceLocation(packet.galaxy.location());
-        buffer.writeDouble(packet.planetPos.getX());
-        buffer.writeDouble(packet.planetPos.getY());
-        buffer.writeDouble(packet.planetPos.getZ());
+        buffer.writeResourceLocation(packet.planet.location());
     }
 
     public static DoLightTravelPacket decoder(FriendlyByteBuf buffer) {
@@ -75,10 +77,9 @@ public class DoLightTravelPacket {
         }
 
         ResourceLocation galaxy = buffer.readResourceLocation();
+        ResourceLocation planet = buffer.readResourceLocation();
 
-        BlockPos planetPos = new BlockPos(buffer.readDouble(), buffer.readDouble(), buffer.readDouble());
-
-        return new DoLightTravelPacket(spaceVehicleId, additionalEntities, galaxy, planetPos);
+        return new DoLightTravelPacket(spaceVehicleId, additionalEntities, galaxy, planet);
     }
 
     public static void handle(DoLightTravelPacket message, Supplier<NetworkEvent.Context> contextSupplier) {
@@ -88,7 +89,42 @@ public class DoLightTravelPacket {
         context.enqueueWork(() -> {
             ServerPlayer serverPlayer = context.getSender();
 
+
             if (serverPlayer != null) {
+
+                Inventory inv = serverPlayer.getInventory();
+
+                Galaxy galaxy = Galaxy.getGalaxy(message.galaxy);
+                Planet planet = Planet.getPlanet(message.planet);
+                int cost = galaxy.getLightSpeedCost().getCount();
+//            int planetCost = Planet.getPlanet(message.planet).getLightSpeedCost().getCount();
+
+
+                while (cost > 0) {
+                    for (ItemStack item : inv.items) {
+                        CelestialLib.LOGGER.debug("running remove galaxy cost items… i: " + cost);
+                        if (item.is(galaxy.getLightSpeedCost().getItem())) {
+                            int i = Math.min(item.getCount(), cost);
+                            cost -= i;
+                            item.shrink(i);
+                            if (cost == 0) break;
+                        }
+                    }
+                }
+
+                cost = planet.getLightSpeedCost().getCount();
+
+                while (cost > 0) {
+                    CelestialLib.LOGGER.debug("running remove planet cost items… i: " + cost);
+                    for (ItemStack item : inv.items) {
+                        if (item.is(planet.getLightSpeedCost().getItem())) {
+                            int i = Math.min(item.getCount(), cost);
+                            cost -= i;
+                            item.shrink(i);
+                            if (cost == 0) break;
+                        }
+                    }
+                }
 
                 Entity entity = serverPlayer.level.getEntity(message.spaceVehicleId);
 
@@ -105,7 +141,7 @@ public class DoLightTravelPacket {
                         }
                     }
 
-                    TeleportUtil.handleLightSpeedTravel(serverPlayer, entity, passengers, message.galaxy, message.planetPos);
+                    TeleportUtil.handleLightSpeedTravel(serverPlayer, entity, passengers, message.galaxy, CelestialUtil.getPlanetBlockCoordinates(planet.getDimension()));
 
 //                    TeleportUtil.teleport(entity, passengers, message.galaxy, message.planetPos);
 //

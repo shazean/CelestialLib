@@ -2,36 +2,31 @@ package com.shim.celestiallib.inventory.screens;
 
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
 import com.shim.celestiallib.CelestialLib;
-import com.shim.celestiallib.inventory.menus.LightSpeedTravelMenu;
+import com.shim.celestiallib.inventory.menus.SingleGalaxyLightSpeedMenu;
 import com.shim.celestiallib.util.CelestialUtil;
 import com.shim.celestiallib.world.galaxy.Galaxy;
 import com.shim.celestiallib.world.planet.Planet;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import org.apache.commons.lang3.StringUtils;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTravelMenu> {
+public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<SingleGalaxyLightSpeedMenu> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(CelestialLib.MODID, "textures/gui/light_speed_travel/light_speed_travel.png");
     private static final ResourceLocation DEFAULT_BG = new ResourceLocation(CelestialLib.MODID, "textures/gui/light_speed_travel/default_galaxy_background.png");
 
@@ -39,20 +34,13 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
     private static final Component COST = new TranslatableComponent("menu.celestiallib.light_speed_travel.cost");
     private static final Component TRAVEL = new TranslatableComponent("menu.celestiallib.light_speed_travel.travel");
 
-    private Galaxy selectedGalaxy;
+    private final Galaxy galaxy = Galaxy.getFirstGalaxy();
     private Planet selectedPlanet;
     double xDrag = 0.0;
     double yDrag = 0.0;
-
-    int scrollbarY = 7;
-    boolean isScrolling;
-    float scrollPercent = 0.0f;
-
     boolean isDragging;
 
-    private final Galaxy[] galaxiesOnScreen = new Galaxy[5];
     private final ArrayList<PlanetWidget> planetsOnScreen = new ArrayList<>();
-
     private final Map<Planet, PlanetWidget> planetWidgets = new HashMap<>();
 
     private List<Component> tooltip = Lists.newArrayList();
@@ -60,7 +48,7 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
     boolean canTravel = false;
     boolean travelClicked = false;
 
-    public LightSpeedTravelScreen(LightSpeedTravelMenu menu, Inventory playerInventory, Component title) {
+    public SingleGalaxyLightSpeedScreen(SingleGalaxyLightSpeedMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
     }
 
@@ -90,27 +78,17 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
         this.renderBg(poseStack, delta, mouseX, mouseY);
 //        super.render(poseStack, mouseX, mouseY, delta);
 
-        font.draw(poseStack, TITLE, x + 124, y + 8, 4210752);
+        font.draw(poseStack, TITLE, x + 124, y + 136, 4210752);
 
-        this.renderGalaxyList(poseStack, x, y);
+//        this.renderGalaxyList(poseStack, x, y);
         this.renderGalaxyMap(poseStack, x, y);
         this.renderPlanetDetails(poseStack, x, y, mouseX, mouseY);
         this.renderPlanetTooltips(poseStack, x, y, mouseX, mouseY);
         renderTooltip(poseStack, mouseX, mouseY);
     }
 
-    protected boolean isScrollBarVisible() {
-        return Galaxy.getVisibleGalaxies().size() > 5;
-    }
-
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int p_97754_, double dragX, double dragY) {
-        if (isScrollBarVisible() && this.isScrolling) {
-            this.scrollbarY = (int) Mth.clamp(this.scrollbarY + dragY, 7, 98 - 27);
-            this.scrollPercent = (this.scrollbarY - 7) / (float) 64;
-            return true;
-        }
-
         if (this.isDragging) {
             this.xDrag += dragX;
             this.yDrag += dragY;
@@ -125,26 +103,6 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
         int x = (width - imageWidth) / 2;
         int y = (height - imageHeight) / 2;
 
-        this.isScrolling = false;
-        if (isScrollBarVisible()) {
-            if (mouseY <= y + 27 + scrollbarY && mouseY >= y + scrollbarY && mouseX >= x + 109 && mouseX <= x + 109 + 6) { //mouse clicked on scrollbar
-                this.isScrolling = true;
-            }
-        }
-
-        if (isHovering(x - this.leftPos + 11, y - this.topPos + 8, 96, 91, mouseX, mouseY)) { //mouse clicked somewhere in galaxy list
-            int yPos = Mth.clamp((int) ((mouseY - y - 7) / 18), 0, 5);
-
-            Galaxy galaxy = this.galaxiesOnScreen[yPos];
-
-            if (galaxy != null && !galaxy.isLocked()) {
-                this.selectedGalaxy = galaxy;
-                this.planetsOnScreen.clear();
-                this.yDrag = 0;
-                this.xDrag = 0;
-            }
-        }
-
         this.isDragging = false;
         if (isHovering(x - this.leftPos + 10, y - this.topPos + 107, 210, 100, mouseX, mouseY)) { //mouse clicked in galaxy map
             this.isDragging = true;
@@ -152,7 +110,7 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
 
         if (isHovering(x - this.leftPos + 124, y - this.topPos + 75, 98, 26, mouseX, mouseY)) {
             if (this.canTravel) {
-                this.menu.handleLightSpeedTravel(this.selectedGalaxy, this.selectedPlanet);
+                this.menu.handleLightSpeedTravel(this.galaxy, this.selectedPlanet);
                 this.travelClicked = true;
                 this.onClose();
             }
@@ -162,19 +120,7 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
-        //TODO allow for inverted scrolling
-        if (this.isScrollBarVisible()) {
-            this.scrollbarY = (int) Mth.clamp(this.scrollbarY + amount, 7, 98 - 27);
-            this.scrollPercent = (this.scrollbarY - 7) / (float) 64;
-            return true;
-        }
-        return super.mouseScrolled(mouseX, mouseY, amount);
-    }
-
-    @Override
     public boolean mouseReleased(double mouseX, double mouseY, int p_97814_) {
-        this.isScrolling = false;
         if (this.isDragging) {
             this.isDragging = false;
         }
@@ -195,93 +141,11 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
         return super.mouseReleased(mouseX, mouseY, p_97814_);
     }
 
-    public void renderGalaxyList(PoseStack poseStack, int x, int y) {
-        int i = 0;
-        int j = 0;
-        int k = 0;
-        RenderSystem.setShaderTexture(0, TEXTURE);
-
-        if (isScrollBarVisible()) {
-            blit(poseStack, x + 109, y + scrollbarY, 230, 0, 6, 27, 512, 256);
-        }
-
-        for (Galaxy galaxy : Galaxy.getAlphabetizedList()) {
-
-            boolean locked = galaxy.isLocked();
-            boolean hidden = galaxy.isHidden();
-            j++;
-
-            if (hidden) continue;
-            if (i >= 5 * 18) break;
-            if (this.scrollPercent > ((float) j / Galaxy.DIMENSIONS.size())) continue;
-
-            this.galaxiesOnScreen[k] = galaxy;
-            k++;
-
-            RenderSystem.setShaderTexture(0, TEXTURE);
-
-            //bar
-            boolean selected = this.selectedGalaxy == galaxy;
-            int barYPos = locked ? 63 : selected ? 45 : 27;
-            blit(poseStack, x + 10, y + 7 + i, 230, barYPos, 98, 18, 512, 256);
-
-            //name
-            String galaxyName = CelestialUtil.getDisplayName(galaxy.getDimension()).getString();
-
-            ItemStack galaxyCost = galaxy.getLightSpeedCost();
-            int maxLength = (galaxyCost == null) ? 96 - 19 : 96 - 18 - 21;
-
-            boolean trim = false;
-            while (this.font.width(galaxyName) > maxLength) {
-                trim = true;
-                galaxyName = StringUtils.truncate(galaxyName, galaxyName.length() - 1);
-            }
-            if (trim) {
-                galaxyName = StringUtils.truncate(galaxyName, galaxyName.length() - 1);
-                galaxyName = StringUtils.trim(galaxyName);
-                galaxyName = galaxyName + "…";
-            }
-
-            this.font.draw(poseStack, galaxyName, x + 12 + 2 + 16, y + 9 + 4 + i, (locked ? 9474192 : 14737632));
-
-            //travel resource requirements
-            if (galaxyCost != null) {
-                this.itemRenderer.renderAndDecorateFakeItem(galaxyCost, x + 108 - 19, y + 8 + i);
-                this.itemRenderer.renderGuiItemDecorations(this.font, galaxyCost, x + 108 - 19, y + 8 + i);
-            }
-
-            //icon
-            RenderSystem.setShaderTexture(0, galaxy.getIcon());
-            blit(poseStack, x + 11, y + 8 + i, 0, 0, 16, 16, 16, 16);
-
-            if (locked) {
-                //fade
-                RenderSystem.disableDepthTest();
-                RenderSystem.colorMask(true, true, true, false);
-                fillGradient(poseStack, x + 10, y + 7 + i, x + 10 + 98, y + 7 + 18 + i, slotColor, slotColor, 400);
-                RenderSystem.colorMask(true, true, true, true);
-                RenderSystem.enableDepthTest();
-
-                //lock
-                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-                RenderSystem.setShaderTexture(0, TEXTURE);
-                blit(poseStack, x + 13, y + 8 + 2 + i, 236, 6, 12, 12, 512, 256);
-            }
-
-            i += 18;
-
-        }
-    }
-
     public void renderGalaxyMap(PoseStack poseStack, int x, int y) {
 
-        //TODO handle click & drag
-
-        if (this.selectedGalaxy == null) return;
-
         //background
-        ResourceLocation bgImage = this.selectedGalaxy.getBackgroundImage() != null ? this.selectedGalaxy.getBackgroundImage() : DEFAULT_BG;
-        int size = this.selectedGalaxy.getBackgroundImage() != null ? this.selectedGalaxy.getBackgroundImageSize() : 256;
+        ResourceLocation bgImage = this.galaxy.getBackgroundImage() != null ? this.galaxy.getBackgroundImage() : DEFAULT_BG;
+        int size = this.galaxy.getBackgroundImage() != null ? this.galaxy.getBackgroundImageSize() : 256;
 
         RenderSystem.setShaderTexture(0, bgImage);
 
@@ -291,7 +155,7 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
         int xPos = (int) Mth.clamp(centerOfImg - 105 - this.xDrag, 0, size - 210);
         int yPos = (int) Mth.clamp(centerOfImg - 50 - this.yDrag, 0, size - 100);
 
-        blit(poseStack, x + 10, y + 107, xPos, yPos, 210, 100, size, size);
+        blit(poseStack, x + 10, y + 10, xPos, yPos, 210, 100, size, size);
 
         //planets
         for (Planet planet : Planet.DIMENSIONS.values()) {
@@ -299,9 +163,8 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
                 planetWidgets.put(planet, new PlanetWidget(planet));
             }
 
-            if (!planet.getGalaxy().equals(this.selectedGalaxy)) continue;
+//            if (!planet.getGalaxy().equals(this.selectedGalaxy)) continue;
             if (planet.isHidden()) continue;
-
 
             renderPlanet(poseStack, planet, x, y, size, xPos, yPos);
         }
@@ -372,12 +235,11 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
 
     public void renderPlanetDetails(PoseStack poseStack, int x, int y, int mouseX, int mouseY) {
 
-        if (this.selectedGalaxy == null) return;
         if (this.selectedPlanet == null) return;
 
         this.font.draw(poseStack, CelestialUtil.getDisplayName(this.selectedPlanet.getDimension()), x + 124, y + 20, 4210752);
 
-        if (selectedGalaxy.getLightSpeedCost() != null || selectedPlanet.getLightSpeedCost() != null) {
+        if (this.galaxy.getLightSpeedCost() != null || selectedPlanet.getLightSpeedCost() != null) {
             this.font.draw(poseStack, COST, x + 124, y + 42, 4210752);
             int need;
             int have;
@@ -391,7 +253,7 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
                 need = this.selectedPlanet.getLightSpeedCost().getCount();
                 have = this.menu.checkPlayerInventory(this.selectedPlanet.getLightSpeedCost());
                 cost = this.selectedPlanet.getLightSpeedCost();
-                xPos = (selectedGalaxy.getLightSpeedCost() != null) ? 124 + 20 : 124;
+                xPos = (this.galaxy.getLightSpeedCost() != null) ? 124 + 20 : 124;
 
                 this.itemRenderer.renderAndDecorateFakeItem(cost, x + xPos, y + yPos);
 //                this.itemRenderer.renderGuiItemDecorations(this.font, cost, x + xPos, y + yPos);
@@ -402,10 +264,10 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
                     this.canTravel = true;
             }
 
-            if (selectedGalaxy.getLightSpeedCost() != null) {
-                need = this.selectedGalaxy.getLightSpeedCost().getCount();
-                have = this.menu.checkPlayerInventory(this.selectedGalaxy.getLightSpeedCost());
-                cost = this.selectedGalaxy.getLightSpeedCost();
+            if (this.galaxy.getLightSpeedCost() != null) {
+                need = this.galaxy.getLightSpeedCost().getCount();
+                have = this.menu.checkPlayerInventory(this.galaxy.getLightSpeedCost());
+                cost = this.galaxy.getLightSpeedCost();
                 xPos = 124;
 
                 this.itemRenderer.renderAndDecorateFakeItem(cost, x + xPos, y + yPos);

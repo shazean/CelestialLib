@@ -11,6 +11,7 @@ import net.minecraftforge.registries.ForgeRegistryEntry;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class Galaxy extends ForgeRegistryEntry<Galaxy> {
     Function<ResourceKey<Level>, Integer> galaxyRatioConfig;
@@ -22,6 +23,7 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> {
     private int backgroundImageSize;
     private ItemStack lightSpeedCost;
     private int guiScale = 2;
+    private Supplier<Integer> yHeight;
 
     public static final Map<ResourceKey<Level>, Galaxy> DIMENSIONS = new HashMap<>();
 
@@ -43,6 +45,10 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> {
 
     public static ResourceKey<Level> getFirstDimension() {
         return DIMENSIONS.keySet().stream().toList().get(0);
+    }
+
+    public static Galaxy getFirstGalaxy() {
+        return DIMENSIONS.values().stream().toList().get(0);
     }
 
     public static List<Galaxy> getAlphabetizedList() {
@@ -120,5 +126,15 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> {
                 unlockedGalaxies.add(galaxy);
         }
         return unlockedGalaxies;
+    }
+
+    public void yHeight(Supplier<Integer> yHeight) {
+        this.yHeight = yHeight;
+    }
+
+    public int getYHeight() {
+        if (yHeight != null)
+            return yHeight.get();
+        else return 135; //default value
     }
 }
