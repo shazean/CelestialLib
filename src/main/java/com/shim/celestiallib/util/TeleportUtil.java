@@ -3,6 +3,7 @@ package com.shim.celestiallib.util;
 import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.capabilities.CLibCapabilities;
 import com.shim.celestiallib.capabilities.ISpaceFlight;
+import com.shim.celestiallib.config.CLibCommonConfig;
 import com.shim.celestiallib.packets.CLibPacketHandler;
 import com.shim.celestiallib.packets.ServerDidLightTravelPacket;
 import com.shim.celestiallib.world.galaxy.Galaxy;
@@ -277,19 +278,14 @@ public class TeleportUtil {
         //because there might be multiple options on what galaxy the overworld "belongs" to
         if (currentDimension.equals(Level.OVERWORLD)) {
 
-            CelestialLib.LOGGER.debug("galaxies: " + Galaxy.DIMENSIONS);
-
             if (Galaxy.DIMENSIONS.size() == 1) {
-
-                CelestialLib.LOGGER.debug("is overworld, getting first galaxy: " + Galaxy.getFirstDimension());
-//                return Galaxy.getGalaxy(currentDimension);
-//                return Planet.getPlanet(currentDimension).getGalaxy().getDimension();
-
+                //only one possible option
                 return Galaxy.getFirstDimension();
-            } else if (0 == 0) {
-                //TODO check if a default has been set
-                return null;
-            } else { //one of these not set, so player will need to choose a destination directly
+            } else if (!CLibCommonConfig.DEFAULT_OVERWORLD_GALAXY.get().isEmpty()) {
+                //default galaxy has been set
+                return CelestialUtil.getDimensionFromString(CLibCommonConfig.DEFAULT_OVERWORLD_GALAXY.get());
+            }
+            else { //one of these not set, so player will need to choose a destination directly
                 return null;
             }
         } else { //not the overworld

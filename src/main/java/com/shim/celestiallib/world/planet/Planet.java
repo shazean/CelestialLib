@@ -4,6 +4,7 @@ import com.shim.celestiallib.world.galaxy.Galaxy;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -17,7 +18,6 @@ import java.util.function.Supplier;
 
 public class Planet extends ForgeRegistryEntry<Planet> {
     private MobEffect gravity = null;
-    Supplier<Boolean> gravityConfig;
     private final ResourceKey<Level> dimension;
     private final Galaxy galaxy;
     boolean isLocked = false;
@@ -25,15 +25,17 @@ public class Planet extends ForgeRegistryEntry<Planet> {
     ResourceLocation texture;
     int textureSize = 16; //default size
     private ItemStack lightSpeedCost;
+    float costMultiplier;
 
     public static final Map<ResourceKey<Level>, Planet> DIMENSIONS = new HashMap<>();
 
-    public Planet(ResourceKey<Level> dimension, Galaxy galaxy, Supplier<Boolean> gravityConfig) {
+    public Planet(ResourceKey<Level> dimension, Galaxy galaxy) {
         this.dimension = dimension;
         this.galaxy = galaxy;
-        this.gravityConfig = gravityConfig;
 
-        //TODO check dimension coming in is unique
+        if (DIMENSIONS.containsKey(dimension)) {
+            throw new IllegalStateException("dimension: " + dimension.toString() + " already has an associated planet");
+        }
         DIMENSIONS.put(dimension, this);
     }
 
@@ -52,7 +54,7 @@ public class Planet extends ForgeRegistryEntry<Planet> {
 
     @Nullable
     public MobEffect getGravity() {
-        if (this.gravityConfig != null && this.gravityConfig.get() && gravity != null)
+        if (gravity != null)
             return this.gravity;
         else return null;
     }
@@ -90,11 +92,23 @@ public class Planet extends ForgeRegistryEntry<Planet> {
     }
 
     public Planet lightSpeedCost(ItemStack itemStack) {
-        this.lightSpeedCost = itemStack;
+        return lightSpeedCost(itemStack, 1.0f);
+    }
+
+//    public ItemStack getLightSpeedCost() {
+//      return this.lightSpeedCost;
+//    }
+
+    //multiplier is later clamped to be within the values of 1 and 2048, even if value passed in is higher than that
+    public Planet lightSpeedCost(ItemStack cost, float costMultiplier) {
+        this.lightSpeedCost = cost;
+        this.costMultiplier = costMultiplier;
         return this;
     }
 
-    public ItemStack getLightSpeedCost() {
-        return this.lightSpeedCost;
+    public ItemStack getLightSpeedCost(float distance) {
+        return new ItemStack(this.lightSpeedCost.getItem(),
+                (int) (this.lightSpeedCost.getCount() * Mth.clamp(this.costMultiplier,
+                        1, 2048) * distance));
     }
 }

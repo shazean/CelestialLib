@@ -4,6 +4,7 @@ import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.armor.ISpacesuit;
 import com.shim.celestiallib.capabilities.CLibCapabilities;
 import com.shim.celestiallib.capabilities.ISpaceFlight;
+import com.shim.celestiallib.config.CLibCommonConfig;
 import com.shim.celestiallib.effects.GravityEffect;
 import com.shim.celestiallib.packets.CLibPacketHandler;
 import com.shim.celestiallib.packets.LightSpeedMenuPacket;
@@ -47,8 +48,12 @@ public class CLibForgeEventBus {
         Entity spaceVehicle = null;
 
         if (player.level.isClientSide()) {
-            if (CLibKeybinds.OPEN_LIGHT_SPEED_TRAVEL.isDown()) {
-                CLibPacketHandler.INSTANCE.sendToServer(new LightSpeedMenuPacket());
+            if (Galaxy.isGalaxyDimension(player.level.dimension())) {
+                if (CLibKeybinds.OPEN_LIGHT_SPEED_TRAVEL.isDown()) {
+                    CLibPacketHandler.INSTANCE.sendToServer(new LightSpeedMenuPacket());
+                }
+            } else {
+                player.displayClientMessage(new TranslatableComponent("menu.celestiallib.light_speed_travel.invalid"), true);
             }
         }
 
@@ -208,7 +213,7 @@ public class CLibForgeEventBus {
 //            }
 //        }
 
-//        if (CelestialCommonConfig.USE_GRAVITY_EFFECTS.get()) {
+        if (CLibCommonConfig.GRAVITY_EFFECTS.get()) {
 
             if (entity instanceof ServerPlayer player) {
                 ItemStack itemStack = player.getItemBySlot(EquipmentSlot.FEET);
@@ -244,7 +249,7 @@ public class CLibForgeEventBus {
                 }
 
             }
-//        }
+        }
 //        if (CelestialCommonConfig.STORMS.get()) {
 //            if (event.getWorld().isRaining() && event.getWorld().getBiome(entity.blockPosition()).is(CelestialTags.Biomes.DUST_STORM_BIOMES)) {
 //                if (entity instanceof LivingEntity livingEntity && !(entity instanceof Player)) {

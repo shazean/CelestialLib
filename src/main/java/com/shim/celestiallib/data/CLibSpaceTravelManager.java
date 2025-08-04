@@ -19,11 +19,11 @@ import net.minecraft.world.level.Level;
 
 import java.util.Map;
 
-public class CLibDimensionManager extends SimpleJsonResourceReloadListener {
+public class CLibSpaceTravelManager extends SimpleJsonResourceReloadListener {
     private static final Gson GSON = (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
 
-    public CLibDimensionManager() {
-        super(GSON, "celestial/dimensions");
+    public CLibSpaceTravelManager() {
+        super(GSON, "celestial/space_travel");
     }
 
     @Override

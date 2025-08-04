@@ -4,6 +4,7 @@ import com.shim.celestiallib.util.teleportation.AbstractCelestialTeleportData;
 import com.shim.celestiallib.util.teleportation.CelestialCoordinateTeleport;
 import com.shim.celestiallib.world.planet.Planet;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -100,4 +101,13 @@ public class CelestialUtil {
         int galaxyRatio = Planet.getPlanet(planet).getGalaxy().getGalaxyRatio();
         return new BlockPos(coord.x * galaxyRatio * 16, coord.y, coord.z * galaxyRatio * 16);
     }
+
+    public static ResourceKey<Level> getDimensionFromString(String dimensionKey) {
+        String[] resource = dimensionKey.split(":");
+        String namespace = resource[0];
+        String path = resource[1];
+
+        return ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(namespace, path));
+    }
+
 }

@@ -2,11 +2,13 @@ package com.shim.celestiallib.world.galaxy;
 
 import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.util.CelestialUtil;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
 import java.util.*;
@@ -31,7 +33,9 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> {
         this.dimension = galaxyDimension;
         this.galaxyRatioConfig = galaxyRatioConfig;
 
-        //TODO check dimension coming in is unique
+        if (DIMENSIONS.containsKey(dimension)) {
+            throw new IllegalStateException("dimension: " + dimension.toString() + " already has an associated galaxy");
+        }
         DIMENSIONS.put(dimension, this);
     }
 
@@ -72,6 +76,15 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> {
         return this;
     }
 
+    public static void unlockGalaxies(Advancement advancement) {
+
+    }
+
+    public void unlock() {
+        this.isLocked = false;
+        this.isHidden = false;
+    }
+
     public boolean isLocked() {
         return this.isLocked;
     }
@@ -106,8 +119,15 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> {
         return this;
     }
 
-    public ItemStack getLightSpeedCost() {
-        return this.lightSpeedCost;
+//    public ItemStack getLightSpeedCost() {
+//        return this.lightSpeedCost;
+//    }
+
+    public ItemStack getLightSpeedCost(Galaxy originatingGalaxy) {
+        if (this.equals(originatingGalaxy))
+            return new ItemStack(Blocks.AIR);
+        else
+            return this.lightSpeedCost;
     }
 
     public int getGuiScale() {

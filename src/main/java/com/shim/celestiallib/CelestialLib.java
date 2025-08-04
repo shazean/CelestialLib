@@ -3,8 +3,8 @@ package com.shim.celestiallib;
 import com.mojang.logging.LogUtils;
 import com.shim.celestiallib.capabilities.CLibCapabilities;
 import com.shim.celestiallib.data.CLibDimensionEffectsManager;
-import com.shim.celestiallib.data.CLibDimensionManager;
-import com.shim.celestiallib.data.CLibPlanetManager;
+import com.shim.celestiallib.data.CLibSpaceTravelManager;
+import com.shim.celestiallib.data.CLibPlanetStructureTravelManager;
 import com.shim.celestiallib.effects.CelestialLibEffects;
 import com.shim.celestiallib.events.CLibCommonEventSetup;
 import com.shim.celestiallib.inventory.CLibMenus;
@@ -89,8 +89,8 @@ public class CelestialLib {
     }
 
     private void reloadResources(final AddReloadListenerEvent event) {
-        event.addListener(new CLibDimensionManager());
-        event.addListener(new CLibPlanetManager());
+        event.addListener(new CLibSpaceTravelManager());
+        event.addListener(new CLibPlanetStructureTravelManager());
         event.addListener(new CLibDimensionEffectsManager());
 
     }
