@@ -160,7 +160,7 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
         //planets
         for (Planet planet : Planet.DIMENSIONS.values()) {
             if (!planetWidgets.containsKey(planet)) {
-                planetWidgets.put(planet, new PlanetWidget(planet));
+                planetWidgets.put(planet, new PlanetWidget(planet, this.menu.getTravelDistance(planet)));
             }
 
 //            if (!planet.getGalaxy().equals(this.selectedGalaxy)) continue;
@@ -238,22 +238,23 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
         if (this.selectedPlanet == null) return;
 
         this.font.draw(poseStack, CelestialUtil.getDisplayName(this.selectedPlanet.getDimension()), x + 124, y + 20, 4210752);
+        float travelDistance = this.menu.getTravelDistance(this.selectedPlanet);
 
-        if (this.galaxy.getLightSpeedCost() != null || selectedPlanet.getLightSpeedCost() != null) {
+        if (selectedPlanet.getLightSpeedCost(travelDistance) != null) {
             this.font.draw(poseStack, COST, x + 124, y + 42, 4210752);
             int need;
             int have;
-            ItemStack cost;
+            ItemStack cost = this.selectedPlanet.getLightSpeedCost(travelDistance);
 
             int xPos;
             int yPos = 52;
 
-            if (selectedPlanet.getLightSpeedCost() != null) {
 
-                need = this.selectedPlanet.getLightSpeedCost().getCount();
-                have = this.menu.checkPlayerInventory(this.selectedPlanet.getLightSpeedCost());
-                cost = this.selectedPlanet.getLightSpeedCost();
-                xPos = (this.galaxy.getLightSpeedCost() != null) ? 124 + 20 : 124;
+            if (cost != null) {
+
+                need = cost.getCount();
+                have = this.menu.checkPlayerInventory(cost);
+                xPos = 124;
 
                 this.itemRenderer.renderAndDecorateFakeItem(cost, x + xPos, y + yPos);
 //                this.itemRenderer.renderGuiItemDecorations(this.font, cost, x + xPos, y + yPos);
@@ -264,20 +265,6 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
                     this.canTravel = true;
             }
 
-            if (this.galaxy.getLightSpeedCost() != null) {
-                need = this.galaxy.getLightSpeedCost().getCount();
-                have = this.menu.checkPlayerInventory(this.galaxy.getLightSpeedCost());
-                cost = this.galaxy.getLightSpeedCost();
-                xPos = 124;
-
-                this.itemRenderer.renderAndDecorateFakeItem(cost, x + xPos, y + yPos);
-                this.renderItemStackText(poseStack, have, need, x + xPos, y + yPos);
-                this.renderCostTooltip(poseStack, x + xPos, y + yPos, mouseX, mouseY, cost, have, need);
-
-                if (have < need)
-                    this.canTravel = false;
-
-            }
         } else {
             this.canTravel = true;
         }
@@ -324,7 +311,6 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
     public void renderItemStackText(PoseStack poseStack, int haveCount, int needCount, int x, int y) {
         poseStack.pushPose();
         String need = String.valueOf(needCount);
-        double z = 200.0D;
         poseStack.translate(0.0D, 0.0D, this.getBlitOffset() + 200.0D);
         MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
         this.font.drawShadow(poseStack, need, (float) (x + 19 - 2 - this.font.width(need)), (float) (y + 6 + 3), getColor(haveCount, needCount));

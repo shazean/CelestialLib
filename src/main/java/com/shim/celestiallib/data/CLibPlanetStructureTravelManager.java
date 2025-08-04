@@ -47,7 +47,6 @@ public class CLibPlanetStructureTravelManager extends SimpleJsonResourceReloadLi
                         int z = GsonHelper.getAsInt(coordinates, "z");
 
                         CelestialUtil.setPlanetLocation(dimension, new Vec3(x, 0, z));
-
                     }
                 }
             }
@@ -61,7 +60,6 @@ public class CLibPlanetStructureTravelManager extends SimpleJsonResourceReloadLi
                 }
 
                 TeleportUtil.addDimensionStructureBlocks(dimension, blocksList);
-
             }
         });
     }

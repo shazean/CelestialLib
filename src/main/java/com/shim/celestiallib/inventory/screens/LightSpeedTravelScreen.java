@@ -228,7 +228,7 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
             //name
             String galaxyName = CelestialUtil.getDisplayName(galaxy.getDimension()).getString();
 
-            ItemStack galaxyCost = galaxy.getLightSpeedCost();
+            ItemStack galaxyCost = galaxy.getLightSpeedCost(this.menu.getCurrentGalaxy());
             int maxLength = (galaxyCost == null) ? 96 - 19 : 96 - 18 - 21;
 
             boolean trim = false;
@@ -296,7 +296,7 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
         //planets
         for (Planet planet : Planet.DIMENSIONS.values()) {
             if (!planetWidgets.containsKey(planet)) {
-                planetWidgets.put(planet, new PlanetWidget(planet));
+                planetWidgets.put(planet, new PlanetWidget(planet, this.menu.getTravelDistance(planet)));
             }
 
             if (!planet.getGalaxy().equals(this.selectedGalaxy)) continue;
@@ -377,40 +377,40 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
 
         this.font.draw(poseStack, CelestialUtil.getDisplayName(this.selectedPlanet.getDimension()), x + 124, y + 20, 4210752);
 
-        if (selectedGalaxy.getLightSpeedCost() != null || selectedPlanet.getLightSpeedCost() != null) {
+        ItemStack galaxyCost = this.selectedGalaxy.getLightSpeedCost(this.menu.getCurrentGalaxy());
+        ItemStack planetCost = this.selectedPlanet.getLightSpeedCost(this.menu.getTravelDistance(this.selectedPlanet));
+
+        if (galaxyCost != null || planetCost != null) {
             this.font.draw(poseStack, COST, x + 124, y + 42, 4210752);
             int need;
             int have;
-            ItemStack cost;
 
             int xPos;
             int yPos = 52;
 
-            if (selectedPlanet.getLightSpeedCost() != null) {
+            if (planetCost != null) {
 
-                need = this.selectedPlanet.getLightSpeedCost().getCount();
-                have = this.menu.checkPlayerInventory(this.selectedPlanet.getLightSpeedCost());
-                cost = this.selectedPlanet.getLightSpeedCost();
-                xPos = (selectedGalaxy.getLightSpeedCost() != null) ? 124 + 20 : 124;
+                need = planetCost.getCount();
+                have = this.menu.checkPlayerInventory(planetCost);
+                xPos = (galaxyCost != null) ? 124 + 20 : 124;
 
-                this.itemRenderer.renderAndDecorateFakeItem(cost, x + xPos, y + yPos);
-//                this.itemRenderer.renderGuiItemDecorations(this.font, cost, x + xPos, y + yPos);
+                this.itemRenderer.renderAndDecorateFakeItem(planetCost, x + xPos, y + yPos);
+//                this.itemRenderer.renderGuiItemDecorations(this.font, planetCost, x + xPos, y + yPos);
                 this.renderItemStackText(poseStack, have, need, x + xPos, y + yPos);
-                this.renderCostTooltip(poseStack, x + xPos, y + yPos, mouseX, mouseY, cost, have, need);
+                this.renderCostTooltip(poseStack, x + xPos, y + yPos, mouseX, mouseY, planetCost, have, need);
 
                 if (have >= need)
                     this.canTravel = true;
             }
 
-            if (selectedGalaxy.getLightSpeedCost() != null) {
-                need = this.selectedGalaxy.getLightSpeedCost().getCount();
-                have = this.menu.checkPlayerInventory(this.selectedGalaxy.getLightSpeedCost());
-                cost = this.selectedGalaxy.getLightSpeedCost();
+            if (galaxyCost != null) {
+                need = galaxyCost.getCount();
+                have = this.menu.checkPlayerInventory(galaxyCost);
                 xPos = 124;
 
-                this.itemRenderer.renderAndDecorateFakeItem(cost, x + xPos, y + yPos);
+                this.itemRenderer.renderAndDecorateFakeItem(galaxyCost, x + xPos, y + yPos);
                 this.renderItemStackText(poseStack, have, need, x + xPos, y + yPos);
-                this.renderCostTooltip(poseStack, x + xPos, y + yPos, mouseX, mouseY, cost, have, need);
+                this.renderCostTooltip(poseStack, x + xPos, y + yPos, mouseX, mouseY, galaxyCost, have, need);
 
                 if (have < need)
                     this.canTravel = false;

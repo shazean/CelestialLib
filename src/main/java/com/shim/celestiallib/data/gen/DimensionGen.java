@@ -13,10 +13,12 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import org.slf4j.Logger;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Set;
@@ -30,19 +32,21 @@ public class DimensionGen {
     private final ResourceLocation type;
     private final ResourceLocation settings;
     private final ResourceLocation preset;
+    private final ResourceKey<Biome> fixedBiome;
 
     public DimensionGen(ResourceLocation id, boolean useForgeSeed, long seed, ResourceLocation type,
-                        ResourceLocation settings, ResourceLocation preset) {
+                        ResourceLocation settings, ResourceLocation preset, ResourceKey<Biome> fixedBiome) {
         this.id = id;
         this.useForgeSeed = useForgeSeed;
         this.seed = seed;
         this.type = type;
         this.settings = settings;
         this.preset = preset;
+        this.fixedBiome = fixedBiome;
     }
 
     public DimensionGen.Builder deconstruct() {
-        return new DimensionGen.Builder(this.useForgeSeed, this.seed, this.type, this.settings, this.preset);
+        return new DimensionGen.Builder(this.useForgeSeed, this.seed, this.type, this.settings, this.preset, this.fixedBiome);
     }
 
     public static Builder builder() {
@@ -59,15 +63,17 @@ public class DimensionGen {
         ResourceLocation type;
         ResourceLocation settings;
         ResourceLocation preset;
+        ResourceKey<Biome> fixedBiome;
 
         private Builder() {}
 
-        public Builder(boolean useForgeSeed, long seed, ResourceLocation type, ResourceLocation settings, ResourceLocation preset) {
+        public Builder(boolean useForgeSeed, long seed, ResourceLocation type, ResourceLocation settings, ResourceLocation preset, ResourceKey<Biome> fixedbiome) {
             this.useForgeSeed = useForgeSeed;
             this.seed = seed;
             this.type = type;
             this.settings = settings;
             this.preset = preset;
+            this.fixedBiome = fixedbiome;
         }
 
         public DimensionGen.Builder useForgeSeed(boolean useForgeSeed) {
@@ -100,18 +106,24 @@ public class DimensionGen {
             return this;
         }
 
-        public DimensionGen.Builder preset(ResourceLocation preset) {
-            this.preset = preset;
+        public DimensionGen.Builder presetOrFixedBiome(@Nullable ResourceLocation preset, @Nullable ResourceKey<Biome> biome) {
+            if (preset != null) {
+                this.preset = preset;
+            } else if (biome != null) {
+                this.fixedBiome = biome;
+            } else {
+                throw new IllegalStateException("preset and biome can not both be null!");
+            }
             return this;
         }
 
-        public DimensionGen.Builder preset(ResourceKey<Level> dimension) {
-            this.preset = dimension.location();
-            return this;
+        public DimensionGen.Builder preset(ResourceKey<Level> preset) {
+            return presetOrFixedBiome(preset.location(), null);
         }
 
-        public boolean canBuild(Function<ResourceLocation, DimensionGen> p_138393_) {
-            return type != null && preset != null;
+
+        public boolean canBuild(Function<ResourceLocation, DimensionGen> dimension) {
+            return type != null && (preset != null || this.fixedBiome != null);
         }
 
         public DimensionGen build(ResourceLocation resourceLocation) {
@@ -123,8 +135,12 @@ public class DimensionGen {
             } else {
                 return new DimensionGen(resourceLocation, this.useForgeSeed, this.seed,
                         this.type, this.settings,
-                        this.preset);
+                        this.preset, this.fixedBiome);
             }
+        }
+
+        public DimensionGen save(Consumer<DimensionGen> consumer, ResourceKey<Level> dimension) {
+            return save(consumer, dimension.location().getPath());
         }
 
         public DimensionGen save(Consumer<DimensionGen> consumer, String name) {
@@ -147,8 +163,13 @@ public class DimensionGen {
 
             JsonObject biomeSourceJson = new JsonObject();
 
-            biomeSourceJson.addProperty("type", "minecraft:multi_noise");
-            biomeSourceJson.addProperty("preset", this.preset.toString());
+            if (this.fixedBiome != null) {
+                biomeSourceJson.addProperty("type", "minecraft:fixed");
+                biomeSourceJson.addProperty("biome", this.fixedBiome.location().toString());
+            } else {
+                biomeSourceJson.addProperty("type", "minecraft:multi_noise");
+                biomeSourceJson.addProperty("preset", this.preset.toString());
+            }
 
             generatorJson.add("biome_source", biomeSourceJson);
 
@@ -184,6 +205,13 @@ public class DimensionGen {
                 byteBuf.writeBoolean(true);
                 byteBuf.writeResourceLocation(this.preset);
             }
+
+            if (this.fixedBiome == null) {
+                byteBuf.writeBoolean(false);
+            } else {
+                byteBuf.writeBoolean(true);
+                byteBuf.writeResourceLocation(this.fixedBiome.location());
+            }
         }
     }
 
@@ -198,6 +226,10 @@ public class DimensionGen {
             this.generator = generatorIn;
             this.modid = modid;
             this.fileHelper = fileHelperIn;
+        }
+
+        public void add() {
+
         }
 
         public void run(HashCache cache) {
@@ -225,7 +257,7 @@ public class DimensionGen {
         }
 
         private static Path createPath(Path path, DimensionGen dimensionGen) {
-            return path.resolve("data/" + modid + "/dimension" + dimensionGen.getId().getPath() + ".json");
+            return path.resolve("data/" + modid + "/dimension/" + dimensionGen.getId().getPath() + ".json");
         }
 
         public String getName() {

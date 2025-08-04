@@ -11,6 +11,7 @@ import com.shim.celestiallib.inventory.CLibMenus;
 import com.shim.celestiallib.util.ClientProxy;
 import com.shim.celestiallib.util.IProxy;
 import com.shim.celestiallib.util.ServerProxy;
+import com.shim.celestiallib.world.conditions.UnlockConditions;
 import com.shim.celestiallib.world.galaxy.Galaxies;
 import com.shim.celestiallib.world.planet.Planets;
 import com.shim.celestiallib.world.structures.CLibStructures;
@@ -52,6 +53,7 @@ public class CelestialLib {
 
         Galaxies.GALAXIES.register(modEventBus);
         Planets.PLANETS.register(modEventBus);
+        UnlockConditions.CONDITIONS.register(modEventBus);
 
         modEventBus.addListener(CLibCapabilities::registerCapabilities);
 

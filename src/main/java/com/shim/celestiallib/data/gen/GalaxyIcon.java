@@ -110,8 +110,6 @@ public class GalaxyIcon {
                 byteBuf.writeBoolean(true);
                 byteBuf.writeResourceLocation(this.texture);
             }
-
-
         }
     }
 

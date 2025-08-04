@@ -9,8 +9,10 @@ import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.HashCache;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import org.slf4j.Logger;
@@ -33,7 +35,7 @@ public class DimensionTypeGen {
     private final boolean hasRaids;
 
     private final int logicalHeight;
-    private final int ambientLight;
+    private final float ambientLight;
     private final int minY;
     private final int height;
     private final float coordinateScale;
@@ -44,7 +46,7 @@ public class DimensionTypeGen {
 
     public DimensionTypeGen(ResourceLocation id, boolean ultrawarm, boolean natural, boolean piglinSafe, boolean bedWorks,
                             boolean respawnAnchorWorks, boolean hasSkylight, boolean hasCeiling,
-                            boolean hasRaids, int logicalHeight, int ambientLight, int minY,
+                            boolean hasRaids, int logicalHeight, float ambientLight, int minY,
                             int height, float coordinateScale, int fixedTime, TagKey<Block> infiniburn, ResourceLocation effects) {
         this.id = id;
         this.ultrawarm = ultrawarm;
@@ -65,7 +67,7 @@ public class DimensionTypeGen {
         this.effects = effects;
     }
 
-    public static Builder add() {
+    public static Builder builder() {
         return new Builder();
     }
 
@@ -91,7 +93,7 @@ public class DimensionTypeGen {
         boolean hasRaids;
 
         int logicalHeight;
-        int ambientLight;
+        float ambientLight;
         int minY;
         int height;
         float coordinateScale;
@@ -105,7 +107,7 @@ public class DimensionTypeGen {
 
         public Builder(boolean ultrawarm, boolean natural, boolean piglinSafe, boolean bedWorks,
                        boolean respawnAnchorWorks, boolean hasSkylight, boolean hasCeiling,
-                       boolean hasRaids, int logicalHeight, int ambientLight, int minY,
+                       boolean hasRaids, int logicalHeight, float ambientLight, int minY,
                        int height, float coordinateScale, int fixedTime, TagKey<Block> infiniburn, ResourceLocation effects) {
             this.ultrawarm = ultrawarm;
             this.natural = natural;
@@ -125,22 +127,9 @@ public class DimensionTypeGen {
             this.effects = effects;
         }
 
-        public DimensionTypeGen.Builder ambientLight(int ambientLight) {
-            this.ambientLight = ambientLight;
-            return this;
-        }
-
-        public DimensionTypeGen.Builder logicalHeight(int logicalHeight) {
+        public DimensionTypeGen.Builder height(int logicalHeight, int height, int minY) {
             this.logicalHeight = logicalHeight;
-            return this;
-        }
-
-        public DimensionTypeGen.Builder minY(int minY) {
             this.minY = minY;
-            return this;
-        }
-
-        public DimensionTypeGen.Builder height(int height) {
             this.height = height;
             return this;
         }
@@ -175,36 +164,24 @@ public class DimensionTypeGen {
             return this;
         }
 
-        public DimensionTypeGen.Builder piglinSafe(boolean piglinSafe) {
-            this.piglinSafe = piglinSafe;
-            return this;
-        }
-
-        public DimensionTypeGen.Builder bedWorks(boolean bedWorks) {
+        public DimensionTypeGen.Builder respawn(boolean bedWorks, boolean respawnAnchorWorks) {
             this.bedWorks = bedWorks;
-            return this;
-        }
-
-        public DimensionTypeGen.Builder respawnAnchorWorks(boolean respawnAnchorWorks) {
             this.respawnAnchorWorks = respawnAnchorWorks;
             return this;
         }
 
-        public DimensionTypeGen.Builder hasSkylight(boolean hasSkylight) {
+        public DimensionTypeGen.Builder sky(boolean hasSkylight, boolean hasCeiling, float ambientLight) {
             this.hasSkylight = hasSkylight;
-            return this;
-        }
-
-        public DimensionTypeGen.Builder hasCeiling(boolean hasCeiling) {
             this.hasCeiling = hasCeiling;
+            this.ambientLight = ambientLight;
             return this;
         }
 
-        public DimensionTypeGen.Builder hasRaids(boolean hasRaids) {
+        public DimensionTypeGen.Builder mobs(boolean hasRaids, boolean piglinSafe) {
             this.hasRaids = hasRaids;
+            this.piglinSafe = piglinSafe;
             return this;
         }
-
 
         public boolean canBuild(Function<ResourceLocation, DimensionTypeGen> p_138393_) {
             return true;// galaxy != null && texture != null;
@@ -222,6 +199,10 @@ public class DimensionTypeGen {
                         this.hasRaids, this.logicalHeight, this.ambientLight, this.minY,
                         this.height, this.coordinateScale, this.fixedTime, this.infiniburn, this.effects);
             }
+        }
+
+        public DimensionTypeGen save(Consumer<DimensionTypeGen> consumer, ResourceKey<Level> dimension) {
+            return save(consumer, dimension.location().getPath());
         }
 
         public DimensionTypeGen save(Consumer<DimensionTypeGen> consumer, String name) {
@@ -250,7 +231,9 @@ public class DimensionTypeGen {
             json.addProperty("fixed_time", this.fixedTime);
 
             json.addProperty("infiniburn", "#" + this.infiniburn.location());
-            json.addProperty("effects", this.effects.toString());
+
+            if (this.effects != null)
+                json.addProperty("effects", this.effects.toString());
 
             return json;
         }
@@ -268,7 +251,7 @@ public class DimensionTypeGen {
             byteBuf.writeBoolean(this.hasRaids);
 
             byteBuf.writeInt(this.logicalHeight);
-            byteBuf.writeInt(this.ambientLight);
+            byteBuf.writeFloat(this.ambientLight);
             byteBuf.writeInt(this.minY );
             byteBuf.writeInt(this.height);
             byteBuf.writeFloat(this.coordinateScale);
@@ -328,7 +311,7 @@ public class DimensionTypeGen {
         }
 
         private static Path createPath(Path path, DimensionTypeGen dimensionTypeGen) {
-            return path.resolve("data/" + modid + "/dimension_type" + dimensionTypeGen.getId().getPath() + ".json");
+            return path.resolve("data/" + modid + "/dimension_type/" + dimensionTypeGen.getId().getPath() + ".json");
         }
 
         public String getName() {

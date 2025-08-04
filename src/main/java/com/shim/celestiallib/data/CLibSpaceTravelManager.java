@@ -53,7 +53,7 @@ public class CLibSpaceTravelManager extends SimpleJsonResourceReloadListener {
                 }
             } else if (json.has("coordinate_scale")) {
                 double scale = GsonHelper.getAsDouble(json, "coordinate_scale");
-                if (scale <= 0.0D) { //TODO confirm this is the right exception to throw?
+                if (scale <= 0.0D) {
                     throw new IllegalStateException("Coordinate scale of " + dimension + " must be greater than 0!");
                 }
                 CelestialUtil.setDimensionLocation(dimension, new CelestialScaledTeleport(scale));

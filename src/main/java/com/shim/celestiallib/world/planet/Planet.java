@@ -1,20 +1,18 @@
 package com.shim.celestiallib.world.planet;
 
 import com.shim.celestiallib.world.galaxy.Galaxy;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class Planet extends ForgeRegistryEntry<Planet> {
     private MobEffect gravity = null;
@@ -24,7 +22,7 @@ public class Planet extends ForgeRegistryEntry<Planet> {
     boolean isHidden = false;
     ResourceLocation texture;
     int textureSize = 16; //default size
-    private ItemStack lightSpeedCost;
+    private ItemStack lightSpeedCost = new ItemStack(Blocks.AIR);
     float costMultiplier;
 
     public static final Map<ResourceKey<Level>, Planet> DIMENSIONS = new HashMap<>();
@@ -99,7 +97,7 @@ public class Planet extends ForgeRegistryEntry<Planet> {
 //      return this.lightSpeedCost;
 //    }
 
-    //multiplier is later clamped to be within the values of 1 and 2048, even if value passed in is higher than that
+    //note: multiplier is later clamped to be within the values of 1 and 2048, even if value passed in is higher than that
     public Planet lightSpeedCost(ItemStack cost, float costMultiplier) {
         this.lightSpeedCost = cost;
         this.costMultiplier = costMultiplier;

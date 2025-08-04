@@ -48,12 +48,12 @@ public class CLibForgeEventBus {
         Entity spaceVehicle = null;
 
         if (player.level.isClientSide()) {
-            if (Galaxy.isGalaxyDimension(player.level.dimension())) {
-                if (CLibKeybinds.OPEN_LIGHT_SPEED_TRAVEL.isDown()) {
+            if (CLibKeybinds.OPEN_LIGHT_SPEED_TRAVEL.isDown()) {
+                if (Galaxy.isGalaxyDimension(player.level.dimension())) {
                     CLibPacketHandler.INSTANCE.sendToServer(new LightSpeedMenuPacket());
+                } else {
+                    player.displayClientMessage(new TranslatableComponent("menu.celestiallib.light_speed_travel.invalid"), true);
                 }
-            } else {
-                player.displayClientMessage(new TranslatableComponent("menu.celestiallib.light_speed_travel.invalid"), true);
             }
         }
 

@@ -12,11 +12,10 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Galaxy extends ForgeRegistryEntry<Galaxy> {
-    Function<ResourceKey<Level>, Integer> galaxyRatioConfig;
+    int galaxyRatio = 1;
     private final ResourceKey<Level> dimension;
     boolean isLocked = false;
     boolean isHidden = false;
@@ -29,9 +28,8 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> {
 
     public static final Map<ResourceKey<Level>, Galaxy> DIMENSIONS = new HashMap<>();
 
-    public Galaxy(ResourceKey<Level> galaxyDimension, Function<ResourceKey<Level>, Integer> galaxyRatioConfig) {
+    public Galaxy(ResourceKey<Level> galaxyDimension) {
         this.dimension = galaxyDimension;
-        this.galaxyRatioConfig = galaxyRatioConfig;
 
         if (DIMENSIONS.containsKey(dimension)) {
             throw new IllegalStateException("dimension: " + dimension.toString() + " already has an associated galaxy");
@@ -61,8 +59,12 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> {
         return list;
     }
 
+    public void setGalaxyRatio(int scale) {
+        this.galaxyRatio = scale;
+    }
+
     public int getGalaxyRatio() {
-        return this.galaxyRatioConfig.apply(dimension);
+        return this.galaxyRatio;
     }
 
     public static boolean isGalaxyDimension(ResourceKey<Level> dimension) {

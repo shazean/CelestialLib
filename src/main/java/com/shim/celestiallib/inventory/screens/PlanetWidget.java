@@ -10,6 +10,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
@@ -22,13 +23,15 @@ public class PlanetWidget extends GuiComponent {
     private int y;
     private int width;
     private int height;
+    private float distance;
 
     private static final ResourceLocation DEFAULT_PLANET = new ResourceLocation(CelestialLib.MODID, "textures/gui/light_speed_travel/planets/default_planet.png");
 
-    public PlanetWidget(Planet planet) {
+    public PlanetWidget(Planet planet, float distance) {
         this.planet = planet;
         this.planetTexture = planet.getTexture() != null ? planet.getTexture() : DEFAULT_PLANET;
         this.size = planet.getTextureSize();
+        this.distance = distance;
     }
 
     public ResourceLocation getTexture() {
@@ -47,10 +50,12 @@ public class PlanetWidget extends GuiComponent {
         BlockPos planetLoc = CelestialUtil.getPlanetBlockCoordinates(planet.getDimension());
         tooltip.add(new TextComponent("X: " + planetLoc.getX() + " / Z: " + planetLoc.getZ()));
 
-        if (planet.getLightSpeedCost() != null && !planet.getLightSpeedCost().isEmpty()) {
+        ItemStack cost = planet.getLightSpeedCost(this.distance);
+
+        if (cost != null && !cost.isEmpty()) {
             tooltip.add(new TranslatableComponent("menu.celestiallib.light_speed_travel.cost")
-                    .append(new TextComponent(" " + planet.getLightSpeedCost().getCount() + " ")
-                    .append(planet.getLightSpeedCost().getHoverName())));
+                    .append(new TextComponent(" " + cost.getCount() + " ")
+                    .append(cost.getHoverName())));
         }
 
         //TODO add cooldown

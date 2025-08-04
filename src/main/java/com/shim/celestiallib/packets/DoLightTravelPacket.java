@@ -31,17 +31,19 @@ public class DoLightTravelPacket {
     @Nullable private final ArrayList<Integer> additionalEntities;
     private final ResourceKey<Level> galaxy;
     private final ResourceKey<Level> planet;
+    private final float distance;
 
-    public DoLightTravelPacket(int spaceVehicleId, @Nullable ArrayList<Integer> additionalEntitiesToTeleport, ResourceLocation galaxy, ResourceLocation planet) {
-        this(spaceVehicleId, additionalEntitiesToTeleport, ResourceKey.create(Registry.DIMENSION_REGISTRY, galaxy), ResourceKey.create(Registry.DIMENSION_REGISTRY, planet));
+    public DoLightTravelPacket(int spaceVehicleId, @Nullable ArrayList<Integer> additionalEntitiesToTeleport, ResourceLocation galaxy, ResourceLocation planet, float distance) {
+        this(spaceVehicleId, additionalEntitiesToTeleport, ResourceKey.create(Registry.DIMENSION_REGISTRY, galaxy), ResourceKey.create(Registry.DIMENSION_REGISTRY, planet), distance);
     }
 
-    public DoLightTravelPacket(int spaceVehicleId, @Nullable ArrayList<Integer> additionalEntitiesToTeleport, ResourceKey<Level> galaxy, ResourceKey<Level> planet) {
+    public DoLightTravelPacket(int spaceVehicleId, @Nullable ArrayList<Integer> additionalEntitiesToTeleport, ResourceKey<Level> galaxy, ResourceKey<Level> planet, float distance) {
 
         this.spaceVehicleId = spaceVehicleId;
         this.additionalEntities = additionalEntitiesToTeleport;
         this.galaxy = galaxy;
         this.planet = planet;
+        this.distance = distance;
 
     }
 
@@ -60,6 +62,7 @@ public class DoLightTravelPacket {
 
         buffer.writeResourceLocation(packet.galaxy.location());
         buffer.writeResourceLocation(packet.planet.location());
+        buffer.writeFloat(packet.distance);
     }
 
     public static DoLightTravelPacket decoder(FriendlyByteBuf buffer) {
@@ -79,7 +82,9 @@ public class DoLightTravelPacket {
         ResourceLocation galaxy = buffer.readResourceLocation();
         ResourceLocation planet = buffer.readResourceLocation();
 
-        return new DoLightTravelPacket(spaceVehicleId, additionalEntities, galaxy, planet);
+        float distance = buffer.readFloat();
+
+        return new DoLightTravelPacket(spaceVehicleId, additionalEntities, galaxy, planet, distance);
     }
 
     public static void handle(DoLightTravelPacket message, Supplier<NetworkEvent.Context> contextSupplier) {
@@ -96,14 +101,14 @@ public class DoLightTravelPacket {
 
                 Galaxy galaxy = Galaxy.getGalaxy(message.galaxy);
                 Planet planet = Planet.getPlanet(message.planet);
-                int cost = galaxy.getLightSpeedCost().getCount();
+                int cost = galaxy.getLightSpeedCost(Galaxy.getGalaxy(serverPlayer.level.dimension())).getCount();
 //            int planetCost = Planet.getPlanet(message.planet).getLightSpeedCost().getCount();
 
 
                 while (cost > 0) {
                     for (ItemStack item : inv.items) {
                         CelestialLib.LOGGER.debug("running remove galaxy cost items… i: " + cost);
-                        if (item.is(galaxy.getLightSpeedCost().getItem())) {
+                        if (item.is(galaxy.getLightSpeedCost(Galaxy.getGalaxy(serverPlayer.level.dimension())).getItem())) {
                             int i = Math.min(item.getCount(), cost);
                             cost -= i;
                             item.shrink(i);
@@ -112,12 +117,12 @@ public class DoLightTravelPacket {
                     }
                 }
 
-                cost = planet.getLightSpeedCost().getCount();
+                cost = planet.getLightSpeedCost(message.distance).getCount();
 
                 while (cost > 0) {
                     CelestialLib.LOGGER.debug("running remove planet cost items… i: " + cost);
                     for (ItemStack item : inv.items) {
-                        if (item.is(planet.getLightSpeedCost().getItem())) {
+                        if (item.is(planet.getLightSpeedCost(message.distance).getItem())) {
                             int i = Math.min(item.getCount(), cost);
                             cost -= i;
                             item.shrink(i);

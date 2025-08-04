@@ -156,7 +156,7 @@ public class PlanetIcon {
                     try {
                         DataProvider.save(GSON, cache, planet.deconstruct().serializeToJson(), path1);
                     } catch (IOException ioexception) {
-                        LOGGER.error("Couldn't save galaxy background {}", path1, ioexception);
+                        LOGGER.error("Couldn't save planet icon {}", path1, ioexception);
                     }
 
                 }

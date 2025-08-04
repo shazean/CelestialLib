@@ -1,6 +1,10 @@
 package com.shim.celestiallib.data;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.shim.celestiallib.world.galaxy.Galaxy;
 import com.shim.celestiallib.world.planet.Planet;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
@@ -16,11 +20,11 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Map;
 
-public class CLibPlanetManager extends SimpleJsonResourceReloadListener {
+public class CLibGalaxyManager extends SimpleJsonResourceReloadListener {
     private static final Gson GSON = (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
 
-    public CLibPlanetManager() {
-        super(GSON, "celestial/planet");
+    public CLibGalaxyManager() {
+        super(GSON, "celestial/galaxy");
     }
 
     @Override
@@ -31,18 +35,13 @@ public class CLibPlanetManager extends SimpleJsonResourceReloadListener {
 
             JsonObject json = element.getAsJsonObject();
 
-            String dimName = GsonHelper.getAsString(json, "planet");
+            String dimName = GsonHelper.getAsString(json, "galaxy");
             ResourceKey<Level> dimension = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(dimName));
-            Planet planet = Planet.getPlanet(dimension);
+            Galaxy galaxy = Galaxy.getGalaxy(dimension);
 
-            ResourceLocation gravity = ResourceLocation.parse(GsonHelper.getAsString(json, "gravity"));
-
-            MobEffect gravityEffect = ForgeRegistries.MOB_EFFECTS.getValue(gravity);
-
-            //TODO?
+            int scale = GsonHelper.getAsInt(json, "scale_ratio", 1);
 
             ItemStack cost = null;
-            float multiplier = 1.0f;
             boolean locked = false;
             boolean hidden = false;
             String unlockable = null; //FIXME change to criteria
@@ -64,10 +63,6 @@ public class CLibPlanetManager extends SimpleJsonResourceReloadListener {
                         }
                     }
 
-                    if (lightSpeedTravel.has("cost_multiplier")) {
-                        multiplier = GsonHelper.getAsFloat(lightSpeedTravel, "cost_multiplier", 1.0f);
-                    }
-
                     if (lightSpeedTravel.has("locked")) {
                         locked = true;
                         JsonObject lockedJson = GsonHelper.getAsJsonObject(lightSpeedTravel, "locked");
@@ -85,13 +80,12 @@ public class CLibPlanetManager extends SimpleJsonResourceReloadListener {
             }
 
             if (cost != null)
-              planet.lightSpeedCost(cost, multiplier);
+                galaxy.lightSpeedCost(cost);
 
-            if (gravity != null)
-                planet.gravity(gravityEffect);
+            galaxy.setGalaxyRatio(scale);
 
             if (locked) {
-                planet.lockedAndMaybeHidden(hidden); //TODO add criteria
+                galaxy.lockedAndMaybeHidden(hidden); //TODO add criteria
             }
         });
     }
