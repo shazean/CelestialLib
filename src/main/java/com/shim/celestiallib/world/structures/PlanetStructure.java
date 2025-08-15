@@ -1,7 +1,7 @@
 package com.shim.celestiallib.world.structures;
 
 import com.shim.celestiallib.CelestialLib;
-import com.shim.celestiallib.world.galaxy.Galaxy;
+import com.shim.celestiallib.api.world.galaxy.Galaxy;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.GenerationStep;

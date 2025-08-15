@@ -1,6 +1,6 @@
 package com.shim.celestiallib.util.teleportation;
 
-import com.shim.celestiallib.world.galaxy.Galaxy;
+import com.shim.celestiallib.api.world.galaxy.Galaxy;
 import net.minecraft.world.phys.Vec3;
 
 public class CelestialCoordinateTeleport extends AbstractCelestialTeleportData {

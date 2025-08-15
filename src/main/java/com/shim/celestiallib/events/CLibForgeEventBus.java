@@ -1,19 +1,22 @@
 package com.shim.celestiallib.events;
 
 import com.shim.celestiallib.CelestialLib;
-import com.shim.celestiallib.armor.ISpacesuit;
+import com.shim.celestiallib.api.armor.ISpacesuit;
 import com.shim.celestiallib.capabilities.CLibCapabilities;
-import com.shim.celestiallib.capabilities.ISpaceFlight;
+import com.shim.celestiallib.api.capabilities.ISpaceFlight;
+import com.shim.celestiallib.capabilities.ICoolDown;
+import com.shim.celestiallib.capabilities.PlanetCoolDownHandler;
+import com.shim.celestiallib.capabilities.PlanetCooldown;
 import com.shim.celestiallib.config.CLibCommonConfig;
-import com.shim.celestiallib.effects.GravityEffect;
+import com.shim.celestiallib.api.effects.GravityEffect;
 import com.shim.celestiallib.packets.CLibPacketHandler;
 import com.shim.celestiallib.packets.LightSpeedMenuPacket;
 import com.shim.celestiallib.packets.SpaceFlightPacket;
 import com.shim.celestiallib.util.CLibKeybinds;
 import com.shim.celestiallib.util.CelestialUtil;
 import com.shim.celestiallib.util.TeleportUtil;
-import com.shim.celestiallib.world.galaxy.Galaxy;
-import com.shim.celestiallib.world.planet.Planet;
+import com.shim.celestiallib.api.world.galaxy.Galaxy;
+import com.shim.celestiallib.api.world.planet.Planet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceKey;
@@ -29,10 +32,10 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingEquipmentChangeEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.NetworkDirection;
@@ -116,7 +119,6 @@ public class CLibForgeEventBus {
                     //now we determine what planet (or moon) we should teleport to based off our general location and what block we're looking at
                     //first, find what block we can see
                     BlockHitResult hitResult;
-                    //TODO/FIXME update so only controlling player has to be looking at the right block
                     //TODO test if this fix worked?
                     if (spaceVehicle.is(player) || (spaceVehicle.isVehicle() && spaceVehicle.getControllingPassenger().is(player))) {
                         hitResult = (BlockHitResult) player.pick(flightCap.pickDistance(spaceVehicle), 0.0F, false);
@@ -166,17 +168,19 @@ public class CLibForgeEventBus {
             }
         }
 //
-//        //at the end of the tick, decrease light speed travel cooldowns, if applicable to the player
-//        LightTravelCapability.ILightTravel travelCap = CelestialExploration.getCapability(player, CelestialCapabilities.LIGHT_TRAVEL_CAPABILITY);
-//        if (travelCap != null) {
-//            if (event.phase.equals(TickEvent.Phase.END)) {
-//                travelCap.getMercuryCooldown().decrementCooldown();
-//                travelCap.getVenusCooldown().decrementCooldown();
-//                travelCap.getOverworldCooldown().decrementCooldown();
-//                travelCap.getMarsCooldown().decrementCooldown();
-//                travelCap.getJupiterCooldown().decrementCooldown();
-//            }
-//        }
+
+        //at the end of the tick, decrease light speed travel cooldowns, if applicable to the player
+        PlanetCoolDownHandler coolDownCap = (PlanetCoolDownHandler) CelestialLib.getCapability(player, CLibCapabilities.COOLDOWN_CAPABILITY);
+        if (coolDownCap != null) {
+//            CelestialLib.LOGGER.debug("cooldownCap not null!");
+
+            for (Planet planet : coolDownCap.COOLDOWNS.keySet()) {
+                CelestialLib.LOGGER.debug("planet: " + planet.getDimension().location() + ", cooldown: " + coolDownCap.COOLDOWNS.get(planet).getCurrentCooldown());
+            }
+            if (event.phase.equals(TickEvent.Phase.END)) {
+                coolDownCap.decrementCooldowns();
+            }
+        }
 //
 //        if (CelestialCommonConfig.STORMS.get()) {
 //            //if a player is in a dust storm, apply slowness
@@ -205,13 +209,13 @@ public class CLibForgeEventBus {
         Entity entity = event.getEntity();
         ResourceKey<Level> dimension = event.getWorld().dimension();
 
-//        if (event.getEntity() instanceof Player player) {
-//            LightTravelCapability.ILightTravel travelCap = CelestialExploration.getCapability(player, CelestialCapabilities.LIGHT_TRAVEL_CAPABILITY);
-//
-//            if (travelCap != null) {
-//                travelCap.sync(player);
-//            }
-//        }
+        if (event.getEntity() instanceof Player player) {
+            ICoolDown travelCap = CelestialLib.getCapability(player, CLibCapabilities.COOLDOWN_CAPABILITY);
+
+            if (travelCap != null) {
+                travelCap.sync(player);
+            }
+        }
 
         if (CLibCommonConfig.GRAVITY_EFFECTS.get()) {
 
@@ -220,7 +224,7 @@ public class CLibForgeEventBus {
                 Planet planet = Planet.getPlanet(dimension);
 
                     if (planet != null) {
-                        MobEffect gravity = planet.getGravity();
+                        GravityEffect gravity = planet.getGravity();
                         if (gravity != null) {
                             if (itemStack.getItem() instanceof ISpacesuit suit && suit.shouldNegateGravity(gravity, itemStack)) {
                                 player.removeEffect(gravity);
@@ -238,7 +242,7 @@ public class CLibForgeEventBus {
                 Planet planet = Planet.getPlanet(dimension);
 
                 if (planet != null) {
-                    MobEffect gravity = planet.getGravity();
+                    GravityEffect gravity = planet.getGravity();
                     if (gravity != null) {
                         livingEntity.addEffect(new MobEffectInstance(gravity, 120000, 0, false, false, true));
                     } else {
@@ -265,6 +269,24 @@ public class CLibForgeEventBus {
     }
 
     @SubscribeEvent
+    public static void onPlayerChangeDimensions(PlayerEvent.PlayerChangedDimensionEvent event) {
+        Player player = event.getPlayer();
+        ICoolDown travelCap = CelestialLib.getCapability(player, CLibCapabilities.COOLDOWN_CAPABILITY);
+
+        if (travelCap != null) {
+
+            Planet planet = Planet.getPlanet(event.getTo());
+
+            if (planet != null) {
+                travelCap.setVisited(planet);
+            }
+
+            travelCap.sync(player);
+        }
+    }
+
+
+    @SubscribeEvent
     public static void onEntityEquipmentChange(LivingEquipmentChangeEvent event) {
         Entity entity = event.getEntity();
 
@@ -288,4 +310,21 @@ public class CLibForgeEventBus {
             }
         }
     }
+
+    @SubscribeEvent
+    public static void onPlayerClone(PlayerEvent.Clone event) {
+        if (event.isWasDeath()) {
+            if (event.getOriginal() != null && event.getPlayer() != null) {
+                event.getOriginal().reviveCaps();
+
+                ICoolDown oldTravelData = event.getOriginal().getCapability(CLibCapabilities.COOLDOWN_CAPABILITY).orElse(null);
+                ICoolDown newTravelData = event.getPlayer().getCapability(CLibCapabilities.COOLDOWN_CAPABILITY).orElse(null);
+                if (oldTravelData != null && newTravelData != null) newTravelData.setData(oldTravelData.getData());
+
+
+                event.getOriginal().invalidateCaps();
+            }
+        }
+    }
+
 }

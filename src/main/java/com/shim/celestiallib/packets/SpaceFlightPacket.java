@@ -2,7 +2,7 @@ package com.shim.celestiallib.packets;
 
 import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.capabilities.CLibCapabilities;
-import com.shim.celestiallib.capabilities.ISpaceFlight;
+import com.shim.celestiallib.api.capabilities.ISpaceFlight;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;

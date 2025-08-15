@@ -8,7 +8,7 @@ import com.shim.celestiallib.inventory.CLibMenus;
 import com.shim.celestiallib.inventory.screens.LightSpeedTravelScreen;
 import com.shim.celestiallib.inventory.screens.SingleGalaxyLightSpeedScreen;
 import com.shim.celestiallib.util.CLibKeybinds;
-import com.shim.celestiallib.world.renderer.DimensionRenderers;
+import com.shim.celestiallib.api.world.renderer.DimensionRenderers;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;

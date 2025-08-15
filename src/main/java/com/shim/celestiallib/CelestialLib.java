@@ -57,6 +57,8 @@ public class CelestialLib {
 
         modEventBus.addListener(CLibCapabilities::registerCapabilities);
 
+        MinecraftForge.EVENT_BUS.addGenericListener(Entity.class, CLibCapabilities::attachEntityCapabilities);
+
         MinecraftForge.EVENT_BUS.addListener(this::reloadResources);
 
         // Register ourselves for server and other game events we are interested in

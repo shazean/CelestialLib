@@ -4,28 +4,25 @@ import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.shim.celestiallib.CelestialLib;
+import com.shim.celestiallib.capabilities.CLibCapabilities;
+import com.shim.celestiallib.capabilities.PlanetCoolDownHandler;
 import com.shim.celestiallib.inventory.menus.LightSpeedTravelMenu;
 import com.shim.celestiallib.util.CelestialUtil;
-import com.shim.celestiallib.world.galaxy.Galaxy;
-import com.shim.celestiallib.world.planet.Planet;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
+import com.shim.celestiallib.api.world.galaxy.Galaxy;
+import com.shim.celestiallib.api.world.planet.Planet;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -139,6 +136,7 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
 
             if (galaxy != null && !galaxy.isLocked()) {
                 this.selectedGalaxy = galaxy;
+                this.selectedPlanet = null;
                 this.planetsOnScreen.clear();
                 this.yDrag = 0;
                 this.xDrag = 0;
@@ -182,11 +180,22 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
         int x = (width - imageWidth) / 2;
         int y = (height - imageHeight) / 2;
 
-        for (PlanetWidget planet : this.planetsOnScreen) {
+        for (PlanetWidget widget : this.planetsOnScreen) {
 
-            if (this.isHovering(x - this.leftPos + planet.getX(), y - this.topPos + planet.getY(), planet.getWidth(), planet.getHeight(), mouseX, mouseY)) {
-                this.selectedPlanet = planet.planet;
-                break;
+            if (this.isHovering(x - this.leftPos + widget.getX(), y - this.topPos + widget.getY(), widget.getWidth(), widget.getHeight(), mouseX, mouseY)) {
+                if (widget.getPlanet().getGalaxy().areCooldownsEnabled() && widget.getPlanet().areCooldownsEnabled()) {
+                    PlanetCoolDownHandler coolDownCap = (PlanetCoolDownHandler) CelestialLib.getCapability(CelestialLib.PROXY.getPlayer(), CLibCapabilities.COOLDOWN_CAPABILITY);
+                    if (coolDownCap != null) {
+                        if (coolDownCap.getCooldown(widget.getPlanet()).getCurrentCooldown() == 0) {
+                            this.selectedPlanet = widget.getPlanet();
+                        }
+                        break;
+                    }
+
+                } else {
+                    this.selectedPlanet = widget.getPlanet();
+                    break;
+                }
             }
         }
 
@@ -275,8 +284,6 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
 
     public void renderGalaxyMap(PoseStack poseStack, int x, int y) {
 
-        //TODO handle click & drag
-
         if (this.selectedGalaxy == null) return;
 
         //background
@@ -295,13 +302,14 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
 
         //planets
         for (Planet planet : Planet.DIMENSIONS.values()) {
-            if (!planetWidgets.containsKey(planet)) {
-                planetWidgets.put(planet, new PlanetWidget(planet, this.menu.getTravelDistance(planet)));
-            }
 
+            if (CelestialUtil.getPlanetLocation(planet) == null) continue;
             if (!planet.getGalaxy().equals(this.selectedGalaxy)) continue;
             if (planet.isHidden()) continue;
 
+            if (!planetWidgets.containsKey(planet)) {
+                planetWidgets.put(planet, new PlanetWidget(planet, this.menu.getTravelDistance(planet)));
+            }
 
             renderPlanet(poseStack, planet, x, y, size, xPos, yPos);
         }
@@ -316,6 +324,9 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
         //TODO somehow display a planet is locked/unavailable?
 
         Vec3 planetLoc = CelestialUtil.getPlanetLocation(planet.getDimension());
+        if (planetLoc == null) {
+            return;
+        }
         int scale = planet.getGalaxy().getGuiScale();
 
         int size = widget.getSize();
@@ -374,6 +385,7 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
 
         if (this.selectedGalaxy == null) return;
         if (this.selectedPlanet == null) return;
+        if (CelestialUtil.getPlanetLocation(this.selectedPlanet) == null) return;
 
         this.font.draw(poseStack, CelestialUtil.getDisplayName(this.selectedPlanet.getDimension()), x + 124, y + 20, 4210752);
 

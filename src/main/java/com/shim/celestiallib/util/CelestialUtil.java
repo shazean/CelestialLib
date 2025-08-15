@@ -1,8 +1,9 @@
 package com.shim.celestiallib.util;
 
+import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.util.teleportation.AbstractCelestialTeleportData;
 import com.shim.celestiallib.util.teleportation.CelestialCoordinateTeleport;
-import com.shim.celestiallib.world.planet.Planet;
+import com.shim.celestiallib.api.world.planet.Planet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -78,6 +79,10 @@ public class CelestialUtil {
         return PLANET_LOCATIONS.get(dimension);
     }
 
+    public static Vec3 getPlanetLocation(Planet planet) {
+        return PLANET_LOCATIONS.get(planet.getDimension());
+    }
+
     public static Map<ResourceKey<Level>, Vec3> getPlanetLocations() {
         return PLANET_LOCATIONS;
     }
@@ -90,14 +95,22 @@ public class CelestialUtil {
         PLANET_LOCATIONS.clear();
     }
 
-    public static ChunkPos getPlanetaryChunkCoordinates(ResourceKey<Level> planet) {
+    public static ChunkPos getPlanetChunkCoordinates(ResourceKey<Level> planet) {
         Vec3 coord = getPlanetLocation(planet);
+        if (coord == null) {
+            CelestialLib.LOGGER.error("Can't find planet location for " + planet + ". Probably missing spawn_chunk_coordinates from structures/planets file.");
+            return null;
+        }
         int galaxyRatio = Planet.getPlanet(planet).getGalaxy().getGalaxyRatio();
         return new ChunkPos((int) coord.x * galaxyRatio, (int) coord.z * galaxyRatio);
     }
 
     public static BlockPos getPlanetBlockCoordinates(ResourceKey<Level> planet) {
         Vec3 coord = getPlanetLocation(planet);
+        if (coord == null) {
+            CelestialLib.LOGGER.error("Can't find planet location for " + planet + ". Probably missing spawn_chunk_coordinates from structures/planets file.");
+            return null;
+        }
         int galaxyRatio = Planet.getPlanet(planet).getGalaxy().getGalaxyRatio();
         return new BlockPos(coord.x * galaxyRatio * 16, coord.y, coord.z * galaxyRatio * 16);
     }
@@ -108,6 +121,11 @@ public class CelestialUtil {
         String path = resource[1];
 
         return ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(namespace, path));
+    }
+
+    public static Planet getPlanetFromString(String string) {
+        ResourceKey<Level> dimension = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(string));
+        return Planet.getPlanet(dimension);
     }
 
 }

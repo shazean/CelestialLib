@@ -5,6 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
+import com.shim.celestiallib.api.world.renderer.AbstractSkyHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.FogRenderer;
@@ -185,7 +186,6 @@ public class DatapackSkyHandler extends AbstractSkyHandler {
             renderMoon(poseStack, level, partialTick, 30.0F, -30.0F, moon4.texture(), moon4.size());
         }
         if (ringColor != null) {
-            //TODO color overlay for rings?
 
             RenderSystem.disableBlend();
 

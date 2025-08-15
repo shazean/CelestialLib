@@ -27,6 +27,7 @@ public class CLibLangProvider extends LanguageProvider {
 
         add("menu.celestiallib.light_speed_travel.title", "Light Speed Travel");
         add("menu.celestiallib.light_speed_travel.cost", "Cost:");
+        add("menu.celestiallib.light_speed_travel.cooldown", "Cooldown: ");
         add("menu.celestiallib.light_speed_travel.travel", "Travel");
         add("menu.celestiallib.light_speed_travel.have", "Have: ");
         add("menu.celestiallib.light_speed_travel.need", "Need: ");

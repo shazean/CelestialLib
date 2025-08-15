@@ -1,7 +1,8 @@
 package com.shim.celestiallib.data;
 
 import com.google.gson.*;
-import com.shim.celestiallib.world.planet.Planet;
+import com.shim.celestiallib.api.effects.GravityEffect;
+import com.shim.celestiallib.api.world.planet.Planet;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -35,14 +36,15 @@ public class CLibPlanetManager extends SimpleJsonResourceReloadListener {
             ResourceKey<Level> dimension = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(dimName));
             Planet planet = Planet.getPlanet(dimension);
 
-            ResourceLocation gravity = ResourceLocation.parse(GsonHelper.getAsString(json, "gravity"));
-
-            MobEffect gravityEffect = ForgeRegistries.MOB_EFFECTS.getValue(gravity);
-
-            //TODO?
+            ResourceLocation gravity = null;
+            GravityEffect gravityEffect = null;
+            if (json.has("gravity")) {
+                gravity = ResourceLocation.parse(GsonHelper.getAsString(json, "gravity"));
+                gravityEffect = (GravityEffect) ForgeRegistries.MOB_EFFECTS.getValue(gravity);
+            }
 
             ItemStack cost = null;
-            float multiplier = 1.0f;
+            int multiplier;
             boolean locked = false;
             boolean hidden = false;
             String unlockable = null; //FIXME change to criteria
@@ -64,9 +66,7 @@ public class CLibPlanetManager extends SimpleJsonResourceReloadListener {
                         }
                     }
 
-                    if (lightSpeedTravel.has("cost_multiplier")) {
-                        multiplier = GsonHelper.getAsFloat(lightSpeedTravel, "cost_multiplier", 1.0f);
-                    }
+                    multiplier = GsonHelper.getAsInt(lightSpeedTravel, "cost_multiplier", 0);
 
                     if (lightSpeedTravel.has("locked")) {
                         locked = true;
@@ -81,13 +81,17 @@ public class CLibPlanetManager extends SimpleJsonResourceReloadListener {
                             }
                         }
                     }
+                } else {
+                    multiplier = 0;
                 }
+            } else {
+                multiplier = 0;
             }
 
             if (cost != null)
-              planet.lightSpeedCost(cost, multiplier);
+              planet.lightSpeedCost(cost, () -> multiplier);
 
-            if (gravity != null)
+            if (gravity != null && gravityEffect != null)
                 planet.gravity(gravityEffect);
 
             if (locked) {

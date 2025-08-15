@@ -2,12 +2,11 @@ package com.shim.celestiallib.packets;
 
 import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.capabilities.CLibCapabilities;
-import com.shim.celestiallib.capabilities.ISpaceFlight;
+import com.shim.celestiallib.api.capabilities.ISpaceFlight;
 import com.shim.celestiallib.util.CelestialUtil;
 import com.shim.celestiallib.util.TeleportUtil;
-import com.shim.celestiallib.world.galaxy.Galaxy;
-import com.shim.celestiallib.world.planet.Planet;
-import net.minecraft.core.BlockPos;
+import com.shim.celestiallib.api.world.galaxy.Galaxy;
+import com.shim.celestiallib.api.world.planet.Planet;
 import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
@@ -17,8 +16,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 
 import javax.annotation.Nullable;
@@ -101,18 +98,20 @@ public class DoLightTravelPacket {
 
                 Galaxy galaxy = Galaxy.getGalaxy(message.galaxy);
                 Planet planet = Planet.getPlanet(message.planet);
-                int cost = galaxy.getLightSpeedCost(Galaxy.getGalaxy(serverPlayer.level.dimension())).getCount();
-//            int planetCost = Planet.getPlanet(message.planet).getLightSpeedCost().getCount();
+                ItemStack galaxyCost = galaxy.getLightSpeedCost(Galaxy.getGalaxy(serverPlayer.level.dimension()));
+                int cost;
+                if (galaxyCost != null) {
+                    cost = galaxyCost.getCount();
 
-
-                while (cost > 0) {
-                    for (ItemStack item : inv.items) {
-                        CelestialLib.LOGGER.debug("running remove galaxy cost items… i: " + cost);
-                        if (item.is(galaxy.getLightSpeedCost(Galaxy.getGalaxy(serverPlayer.level.dimension())).getItem())) {
-                            int i = Math.min(item.getCount(), cost);
-                            cost -= i;
-                            item.shrink(i);
-                            if (cost == 0) break;
+                    while (cost > 0) {
+                        for (ItemStack item : inv.items) {
+                            CelestialLib.LOGGER.debug("running remove galaxy cost items… i: " + cost);
+                            if (item.is(galaxyCost.getItem())) {
+                                int i = Math.min(item.getCount(), cost);
+                                cost -= i;
+                                item.shrink(i);
+                                if (cost == 0) break;
+                            }
                         }
                     }
                 }

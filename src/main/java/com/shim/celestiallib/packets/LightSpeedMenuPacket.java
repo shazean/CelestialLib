@@ -2,7 +2,7 @@ package com.shim.celestiallib.packets;
 
 import com.shim.celestiallib.inventory.LightSpeedMenuProvider;
 import com.shim.celestiallib.inventory.SingleGalaxyLightSpeedMenuProvider;
-import com.shim.celestiallib.world.galaxy.Galaxy;
+import com.shim.celestiallib.api.world.galaxy.Galaxy;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;

@@ -1,5 +1,6 @@
 package com.shim.celestiallib.world.biome;
 
+import com.shim.celestiallib.api.world.biome.CLibBiomeFeatures;
 import net.minecraft.data.worldgen.BiomeDefaultFeatures;
 import net.minecraft.data.worldgen.placement.AquaticPlacements;
 import net.minecraft.world.entity.EntityType;
@@ -90,6 +91,4 @@ public class PresetBiomeFeatures extends CLibBiomeFeatures {
         BiomeDefaultFeatures.addDefaultSprings(p_194870_);
         BiomeDefaultFeatures.addSurfaceFreezing(p_194870_);
     }
-
-
 }

@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.shim.celestiallib.world.renderer.DatapackSkyHandler;
-import com.shim.celestiallib.world.renderer.DimensionRenderers;
+import com.shim.celestiallib.api.world.renderer.DimensionRenderers;
 import com.shim.celestiallib.world.renderer.StormWeatherHandler;
 import com.shim.celestiallib.world.renderer.StormWeatherParticleHandler;
 import net.minecraft.client.renderer.DimensionSpecialEffects;
@@ -41,8 +41,6 @@ public class CLibDimensionEffectsManager extends SimpleJsonResourceReloadListene
 
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> elements, ResourceManager p_10794_, ProfilerFiller p_10795_) {
-
-//        CelestialUtil.clearDimensionLocations();
 
         elements.forEach((dimensionPath, element) -> {
 

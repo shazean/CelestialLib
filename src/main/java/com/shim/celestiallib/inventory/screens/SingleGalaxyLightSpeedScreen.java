@@ -5,10 +5,12 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.shim.celestiallib.CelestialLib;
+import com.shim.celestiallib.capabilities.CLibCapabilities;
+import com.shim.celestiallib.capabilities.PlanetCoolDownHandler;
 import com.shim.celestiallib.inventory.menus.SingleGalaxyLightSpeedMenu;
 import com.shim.celestiallib.util.CelestialUtil;
-import com.shim.celestiallib.world.galaxy.Galaxy;
-import com.shim.celestiallib.world.planet.Planet;
+import com.shim.celestiallib.api.world.galaxy.Galaxy;
+import com.shim.celestiallib.api.world.planet.Planet;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -27,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<SingleGalaxyLightSpeedMenu> {
-    private static final ResourceLocation TEXTURE = new ResourceLocation(CelestialLib.MODID, "textures/gui/light_speed_travel/light_speed_travel.png");
+    private static final ResourceLocation TEXTURE = new ResourceLocation(CelestialLib.MODID, "textures/gui/light_speed_travel/light_speed_travel_alt.png");
     private static final ResourceLocation DEFAULT_BG = new ResourceLocation(CelestialLib.MODID, "textures/gui/light_speed_travel/default_galaxy_background.png");
 
     private static final Component TITLE = new TranslatableComponent("menu.celestiallib.light_speed_travel.title");
@@ -78,13 +80,13 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
         this.renderBg(poseStack, delta, mouseX, mouseY);
 //        super.render(poseStack, mouseX, mouseY, delta);
 
-        font.draw(poseStack, TITLE, x + 124, y + 136, 4210752);
+        font.draw(poseStack, TITLE, x + 10, y + 150, 4210752);
 
 //        this.renderGalaxyList(poseStack, x, y);
         this.renderGalaxyMap(poseStack, x, y);
         this.renderPlanetDetails(poseStack, x, y, mouseX, mouseY);
         this.renderPlanetTooltips(poseStack, x, y, mouseX, mouseY);
-        renderTooltip(poseStack, mouseX, mouseY);
+         this.renderTooltip(poseStack, mouseX, mouseY);
     }
 
     @Override
@@ -104,11 +106,11 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
         int y = (height - imageHeight) / 2;
 
         this.isDragging = false;
-        if (isHovering(x - this.leftPos + 10, y - this.topPos + 107, 210, 100, mouseX, mouseY)) { //mouse clicked in galaxy map
+        if (isHovering(x - this.leftPos + 10, y - this.topPos + 10, 210, 130, mouseX, mouseY)) { //mouse clicked in galaxy map
             this.isDragging = true;
         }
 
-        if (isHovering(x - this.leftPos + 124, y - this.topPos + 75, 98, 26, mouseX, mouseY)) {
+        if (isHovering(x - this.leftPos + 124, y - this.topPos + 185, 98, 26, mouseX, mouseY)) {
             if (this.canTravel) {
                 this.menu.handleLightSpeedTravel(this.galaxy, this.selectedPlanet);
                 this.travelClicked = true;
@@ -128,11 +130,22 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
         int x = (width - imageWidth) / 2;
         int y = (height - imageHeight) / 2;
 
-        for (PlanetWidget planet : this.planetsOnScreen) {
+        for (PlanetWidget widget : this.planetsOnScreen) {
 
-            if (this.isHovering(x - this.leftPos + planet.getX(), y - this.topPos + planet.getY(), planet.getWidth(), planet.getHeight(), mouseX, mouseY)) {
-                this.selectedPlanet = planet.planet;
-                break;
+            if (this.isHovering(x - this.leftPos + widget.getX(), y - this.topPos + widget.getY(), widget.getWidth(), widget.getHeight(), mouseX, mouseY)) {
+                if (widget.getPlanet().getGalaxy().areCooldownsEnabled() && widget.getPlanet().areCooldownsEnabled()) {
+                    PlanetCoolDownHandler coolDownCap = (PlanetCoolDownHandler) CelestialLib.getCapability(CelestialLib.PROXY.getPlayer(), CLibCapabilities.COOLDOWN_CAPABILITY);
+                    if (coolDownCap != null) {
+                        if (coolDownCap.getCooldown(widget.getPlanet()).getCurrentCooldown() == 0) {
+                            this.selectedPlanet = widget.getPlanet();
+                        }
+                        break;
+                    }
+
+                } else {
+                    this.selectedPlanet = widget.getPlanet();
+                    break;
+                }
             }
         }
 
@@ -153,18 +166,19 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
         int centerOfImg = size / 2;
 
         int xPos = (int) Mth.clamp(centerOfImg - 105 - this.xDrag, 0, size - 210);
-        int yPos = (int) Mth.clamp(centerOfImg - 50 - this.yDrag, 0, size - 100);
+        int yPos = (int) Mth.clamp(centerOfImg - 65 - this.yDrag, 0, size - 130);
 
-        blit(poseStack, x + 10, y + 10, xPos, yPos, 210, 100, size, size);
+        blit(poseStack, x + 10, y + 10, xPos, yPos, 210, 130, size, size);
 
         //planets
         for (Planet planet : Planet.DIMENSIONS.values()) {
+
+            if (CelestialUtil.getPlanetLocation(planet) == null) continue;
+            if (planet.isHidden()) continue;
+
             if (!planetWidgets.containsKey(planet)) {
                 planetWidgets.put(planet, new PlanetWidget(planet, this.menu.getTravelDistance(planet)));
             }
-
-//            if (!planet.getGalaxy().equals(this.selectedGalaxy)) continue;
-            if (planet.isHidden()) continue;
 
             renderPlanet(poseStack, planet, x, y, size, xPos, yPos);
         }
@@ -189,18 +203,18 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
         int yMovement = (galaxyY >= (galaxySize - 100)) ? -((galaxySize - 100) / 2) : ((galaxyY <= 0) ? ((galaxySize - 100) / 2) : (int) yDrag);
 
         int xLoc = x + 10 + 105 - (size / 2) + xMovement + (int) (planetLoc.x() / scale);
-        int yLoc = y + 107 + 50 - (size / 2) + yMovement + (int) (planetLoc.y() / scale);
+        int yLoc = y + 10 + 50 - (size / 2) + yMovement + (int) (planetLoc.y() / scale);
 
 //        CelestialLib.LOGGER.debug("yLoc: " + yLoc + ", galaxyY: " + galaxyY + ", yDrag: " + yDrag + ", yMovement: " + yMovement);
         int yStarting = 0;
         int xStarting = 0;
 
-        if (yLoc < y + 107) {
-            yOffset = Mth.clamp(y + 107 - yLoc, 0, size);
+        if (yLoc < y + 10) {
+            yOffset = Mth.clamp(y + 10 - yLoc, 0, size);
             yStarting = yOffset;
         }
-        if (yLoc > y + 207 - size) {
-            yOffset = -Mth.clamp(y + 207 - size - yLoc, -size, 0);
+        if (yLoc > y + 130 - size) {
+            yOffset = -Mth.clamp(y + 130 - size - yLoc, -size, 0);
             yStarting = 0;
         }
 
@@ -213,10 +227,10 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
             xStarting = 0;
         }
 
-        yLoc = Mth.clamp(yLoc, y + 107, y + 207);
+        yLoc = Mth.clamp(yLoc, y + 10, y + 130);
         xLoc = Mth.clamp(xLoc, x + 10, x + 219);
 
-//        if (xLoc < 10 - size || xLoc > 219 + size || yLoc < 107 || yLoc > 207)
+//        if (xLoc < 10 - size || xLoc > 219 + size || yLoc < 10 || yLoc > 130)
 //            return;
 
         widget.setPos(xLoc - x, yLoc - y);
@@ -236,25 +250,25 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
     public void renderPlanetDetails(PoseStack poseStack, int x, int y, int mouseX, int mouseY) {
 
         if (this.selectedPlanet == null) return;
+        if (CelestialUtil.getPlanetLocation(this.selectedPlanet) == null) return;
 
-        this.font.draw(poseStack, CelestialUtil.getDisplayName(this.selectedPlanet.getDimension()), x + 124, y + 20, 4210752);
+        this.font.draw(poseStack, CelestialUtil.getDisplayName(this.selectedPlanet.getDimension()), x + 10, y + 164, 4210752);
         float travelDistance = this.menu.getTravelDistance(this.selectedPlanet);
 
         if (selectedPlanet.getLightSpeedCost(travelDistance) != null) {
-            this.font.draw(poseStack, COST, x + 124, y + 42, 4210752);
+            this.font.draw(poseStack, COST, x + 10, y + 182, 4210752);
             int need;
             int have;
             ItemStack cost = this.selectedPlanet.getLightSpeedCost(travelDistance);
 
             int xPos;
-            int yPos = 52;
-
+            int yPos = 190;
 
             if (cost != null) {
 
                 need = cost.getCount();
                 have = this.menu.checkPlayerInventory(cost);
-                xPos = 124;
+                xPos = 10;
 
                 this.itemRenderer.renderAndDecorateFakeItem(cost, x + xPos, y + yPos);
 //                this.itemRenderer.renderGuiItemDecorations(this.font, cost, x + xPos, y + yPos);
@@ -269,13 +283,13 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
             this.canTravel = true;
         }
 
-        int yPos = this.travelClicked ? 107 : 81;
+        int yPos = this.travelClicked ? 26 : 0;
         RenderSystem.setShaderTexture(0, TEXTURE);
-        blit(poseStack, x + 124, y + 75, 230, yPos, 98, 26, 512, 256);
+        blit(poseStack, x + 124, y + 185, 230, yPos, 98, 26, 512, 256);
 
         if (this.canTravel) {
             int width = this.font.width(TRAVEL.getString());
-            this.font.draw(poseStack, TRAVEL, x + 121 + 49 - ((float) width / 2), y + 20 + 22 + 14 + 28, 4210752);
+            this.font.draw(poseStack, TRAVEL, x + 124 + 49 - ((float) width / 2), y + 185 + 9, 4210752);
         }
     }
 
@@ -323,6 +337,8 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
         int i = this.leftPos;
         int j = this.topPos;
 
+        this.setBlitOffset(this.getBlitOffset() + 100);
+
         if (isHovering(x - i, y - j, 16, 16, mouseX, mouseY)) {
             tooltip = Lists.newArrayList();
             this.tooltip.add(itemStack.getHoverName());
@@ -331,5 +347,9 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
 
             this.renderComponentTooltip(poseStack, this.tooltip, mouseX, mouseY);
         }
+
+        this.setBlitOffset(this.getBlitOffset() - 100);
+
+
     }
 }

@@ -2,28 +2,24 @@ package com.shim.celestiallib.inventory.menus;
 
 import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.capabilities.CLibCapabilities;
-import com.shim.celestiallib.capabilities.ISpaceFlight;
+import com.shim.celestiallib.api.capabilities.ISpaceFlight;
 import com.shim.celestiallib.inventory.CLibMenus;
 import com.shim.celestiallib.packets.CLibPacketHandler;
 import com.shim.celestiallib.packets.DoLightTravelPacket;
+import com.shim.celestiallib.packets.ServerResetCooldownPacket;
 import com.shim.celestiallib.util.CelestialUtil;
-import com.shim.celestiallib.world.galaxy.Galaxy;
-import com.shim.celestiallib.world.planet.Planet;
-import net.minecraft.core.BlockPos;
+import com.shim.celestiallib.api.world.galaxy.Galaxy;
+import com.shim.celestiallib.api.world.planet.Planet;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
@@ -87,34 +83,29 @@ public class LightSpeedTravelMenu extends AbstractContainerMenu {
                     }
                 }
 
-
-                if (spaceVehicle instanceof Player || spaceVehicle.getControllingPassenger() == player) {
-
-                    //TODO
-//                        CLibPacketHandler.INSTANCE.sendToServer(new ServerResetLightTravelPacket(spaceVehicle.getFirstPassenger().getId(), galaxy));
-
+                if (spaceVehicle instanceof Player) {
+                    CLibPacketHandler.INSTANCE.sendToServer(new ServerResetCooldownPacket(spaceVehicle.getId(), planet.getDimension()));
+                } else if (spaceVehicle.getControllingPassenger() == player) {
+                    CLibPacketHandler.INSTANCE.sendToServer(new ServerResetCooldownPacket(player.getId(), planet.getDimension()));
                 }
 
-                CelestialLib.LOGGER.debug("should be sending packet next…");
                 CLibPacketHandler.INSTANCE.sendToServer(new DoLightTravelPacket(spaceVehicle.getId(), entityIds, galaxy.getDimension(), planet.getDimension(), getTravelDistance(planet)));
-
             }
         }
     }
 
-
     public float getTravelDistance(Planet planetTravelingTo) {
 
         Player player = this.playerInventory.player;
-        BlockPos startPos = player.blockPosition();
 
-        BlockPos endPos = CelestialUtil.getPlanetBlockCoordinates(planetTravelingTo.getDimension());
+        ChunkPos startPos = new ChunkPos(player.blockPosition());
 
-        float x = endPos.getX() - startPos.getX();
-        float y = endPos.getY() - startPos.getY();
-        float z = endPos.getZ() - startPos.getZ();
+        ChunkPos endPos = CelestialUtil.getPlanetChunkCoordinates(planetTravelingTo.getDimension());
 
-        return Mth.sqrt(x * x + y * y + z * z);
+        float x = endPos.x - startPos.x;
+        float z = endPos.z - startPos.z;
+
+        return Mth.sqrt(x * x + z * z);
     }
 
     public Galaxy getCurrentGalaxy() {

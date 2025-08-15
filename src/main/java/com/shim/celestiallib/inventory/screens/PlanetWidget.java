@@ -2,21 +2,24 @@ package com.shim.celestiallib.inventory.screens;
 
 import com.google.common.collect.Lists;
 import com.shim.celestiallib.CelestialLib;
+import com.shim.celestiallib.capabilities.CLibCapabilities;
+import com.shim.celestiallib.capabilities.ICoolDown;
+import com.shim.celestiallib.capabilities.PlanetCooldown;
 import com.shim.celestiallib.util.CelestialUtil;
-import com.shim.celestiallib.world.planet.Planet;
+import com.shim.celestiallib.api.world.planet.Planet;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
 public class PlanetWidget extends GuiComponent {
-    public final Planet planet;
+    private final Planet planet;
     private final int size;
     private final ResourceLocation planetTexture;
     private int x;
@@ -48,7 +51,8 @@ public class PlanetWidget extends GuiComponent {
         tooltip.add(CelestialUtil.getDisplayName(planet.getDimension()));
 
         BlockPos planetLoc = CelestialUtil.getPlanetBlockCoordinates(planet.getDimension());
-        tooltip.add(new TextComponent("X: " + planetLoc.getX() + " / Z: " + planetLoc.getZ()));
+        if (planetLoc != null)
+            tooltip.add(new TextComponent("X: " + planetLoc.getX() + " / Z: " + planetLoc.getZ()));
 
         ItemStack cost = planet.getLightSpeedCost(this.distance);
 
@@ -58,10 +62,20 @@ public class PlanetWidget extends GuiComponent {
                     .append(cost.getHoverName())));
         }
 
-        //TODO add cooldown
+        Player player = CelestialLib.PROXY.getPlayer();
+        ICoolDown cooldownCap = CelestialLib.getCapability(player, CLibCapabilities.COOLDOWN_CAPABILITY);
+        if (cooldownCap != null) {
+            PlanetCooldown cooldown = cooldownCap.getCooldown(planet);
+            if (cooldown != null)
+                tooltip.add(cooldown.getCooldownComponent());
+        }
 
         return tooltip;
 
+    }
+
+    public Planet getPlanet() {
+        return this.planet;
     }
 
     public int getX() {

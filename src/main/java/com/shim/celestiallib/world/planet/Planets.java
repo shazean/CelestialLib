@@ -1,6 +1,7 @@
 package com.shim.celestiallib.world.planet;
 
 import com.shim.celestiallib.CelestialLib;
+import com.shim.celestiallib.api.world.planet.Planet;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.*;
 

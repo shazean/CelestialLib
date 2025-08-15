@@ -2,12 +2,12 @@ package com.shim.celestiallib.util;
 
 import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.capabilities.CLibCapabilities;
-import com.shim.celestiallib.capabilities.ISpaceFlight;
+import com.shim.celestiallib.api.capabilities.ISpaceFlight;
 import com.shim.celestiallib.config.CLibCommonConfig;
 import com.shim.celestiallib.packets.CLibPacketHandler;
 import com.shim.celestiallib.packets.ServerDidLightTravelPacket;
-import com.shim.celestiallib.world.galaxy.Galaxy;
-import com.shim.celestiallib.world.planet.Planet;
+import com.shim.celestiallib.api.world.galaxy.Galaxy;
+import com.shim.celestiallib.api.world.planet.Planet;
 import com.shim.celestiallib.world.portal.CelestialTeleporter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TextComponent;
@@ -90,7 +90,10 @@ public class TeleportUtil {
                 } else {
                     //and eliminates planets that aren't in the galaxy we're in
                     if (Planet.getPlanet(loc).getGalaxy() == galaxy) {
-                        planetChunkPos = new ChunkPos((int) CelestialUtil.getPlanetaryChunkCoordinates(loc).x, (int) CelestialUtil.getPlanetaryChunkCoordinates(loc).z);
+                        planetChunkPos = CelestialUtil.getPlanetChunkCoordinates(loc);
+                        if (planetChunkPos == null)
+                            CelestialLib.LOGGER.error("getTeleportLocation could not find location for planet {}", loc);
+
                         ChunkPos locationChunk = new ChunkPos(new BlockPos(location.x, location.y, location.z));
 
                         //check if we're somewhat nearby

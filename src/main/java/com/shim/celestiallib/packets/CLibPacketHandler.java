@@ -35,8 +35,11 @@ public class CLibPacketHandler {
         INSTANCE.registerMessage(i++, ServerDidLightTravelPacket.class, ServerDidLightTravelPacket::encoder,
                 ServerDidLightTravelPacket::decoder, ServerDidLightTravelPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
 
-//        INSTANCE.registerMessage(i++, ServerResetLightTravelPacket.class, ServerResetLightTravelPacket::encoder,
-//                ServerResetLightTravelPacket::decoder, ServerResetLightTravelPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        INSTANCE.registerMessage(i++, CooldownDataPacket.class, CooldownDataPacket::encoder,
+                CooldownDataPacket::decoder, CooldownDataPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+
+        INSTANCE.registerMessage(i++, ServerResetCooldownPacket.class, ServerResetCooldownPacket::encoder,
+                ServerResetCooldownPacket::decoder, ServerResetCooldownPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
 
 
     }

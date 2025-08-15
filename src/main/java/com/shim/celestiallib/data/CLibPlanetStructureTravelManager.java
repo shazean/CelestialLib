@@ -1,6 +1,7 @@
 package com.shim.celestiallib.data;
 
 import com.google.gson.*;
+import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.util.CelestialUtil;
 import com.shim.celestiallib.util.TeleportUtil;
 import net.minecraft.core.Registry;
@@ -49,6 +50,8 @@ public class CLibPlanetStructureTravelManager extends SimpleJsonResourceReloadLi
                         CelestialUtil.setPlanetLocation(dimension, new Vec3(x, 0, z));
                     }
                 }
+            } else {
+                CelestialLib.LOGGER.error("structures/planets file for " + dimension + " is missing spawn_chunk_coordinates");
             }
 
             if (json.has("blocks")) {

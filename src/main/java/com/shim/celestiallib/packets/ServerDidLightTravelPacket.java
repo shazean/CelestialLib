@@ -1,8 +1,5 @@
 package com.shim.celestiallib.packets;
 
-import com.shim.celestiallib.CelestialLib;
-import com.shim.celestiallib.capabilities.CLibCapabilities;
-import com.shim.celestiallib.capabilities.ISpaceFlight;
 import com.shim.celestiallib.util.TeleportUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
