@@ -38,8 +38,14 @@ public class CLibPacketHandler {
         INSTANCE.registerMessage(i++, CooldownDataPacket.class, CooldownDataPacket::encoder,
                 CooldownDataPacket::decoder, CooldownDataPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
 
-        INSTANCE.registerMessage(i++, ServerResetCooldownPacket.class, ServerResetCooldownPacket::encoder,
-                ServerResetCooldownPacket::decoder, ServerResetCooldownPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        INSTANCE.registerMessage(i++, ResetCooldownPacket.class, ResetCooldownPacket::encoder,
+                ResetCooldownPacket::decoder, ResetCooldownPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+
+        INSTANCE.registerMessage(i++, ServerUnlockedCelestialPacket.class, ServerUnlockedCelestialPacket::encoder,
+                ServerUnlockedCelestialPacket::decoder, ServerUnlockedCelestialPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+
+//        INSTANCE.registerMessage(i++, ServerUnlockedCelestialPacket.class, ServerUnlockedCelestialPacket::encoder,
+//                ServerUnlockedCelestialPacket::decoder, ServerUnlockedCelestialPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
 
 
     }

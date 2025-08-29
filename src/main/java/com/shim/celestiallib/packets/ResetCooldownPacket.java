@@ -16,30 +16,30 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public class ServerResetCooldownPacket {
+public class ResetCooldownPacket {
 
     private final int playerId;
     private final ResourceKey<Level> dimension;
 
-    public ServerResetCooldownPacket(int playerId, ResourceLocation dimensionLoc) {
+    public ResetCooldownPacket(int playerId, ResourceLocation dimensionLoc) {
         this(playerId, ResourceKey.create(Registry.DIMENSION_REGISTRY, dimensionLoc));
     }
 
-    public ServerResetCooldownPacket(int playerId, ResourceKey<Level> dimension) {
+    public ResetCooldownPacket(int playerId, ResourceKey<Level> dimension) {
         this.playerId = playerId;
         this.dimension = dimension;
     }
 
-    public static void encoder(ServerResetCooldownPacket packet, FriendlyByteBuf buffer) {
+    public static void encoder(ResetCooldownPacket packet, FriendlyByteBuf buffer) {
         buffer.writeInt(packet.playerId);
         buffer.writeResourceLocation(packet.dimension.location());
     }
 
-    public static ServerResetCooldownPacket decoder(FriendlyByteBuf buffer) {
-        return new ServerResetCooldownPacket(buffer.readInt(), buffer.readResourceLocation());
+    public static ResetCooldownPacket decoder(FriendlyByteBuf buffer) {
+        return new ResetCooldownPacket(buffer.readInt(), buffer.readResourceLocation());
     }
 
-    public static void handle(ServerResetCooldownPacket message, Supplier<NetworkEvent.Context> contextSupplier) {
+    public static void handle(ResetCooldownPacket message, Supplier<NetworkEvent.Context> contextSupplier) {
         NetworkEvent.Context context = contextSupplier.get();
         context.enqueueWork(() -> {
             ServerPlayer serverPlayer = context.getSender();

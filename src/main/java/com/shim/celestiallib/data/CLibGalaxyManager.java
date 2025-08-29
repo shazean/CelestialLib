@@ -4,7 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.api.world.galaxy.Galaxy;
+import com.shim.celestiallib.util.CelestialUtil;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -32,16 +34,18 @@ public class CLibGalaxyManager extends SimpleJsonResourceReloadListener {
 
             JsonObject json = element.getAsJsonObject();
 
-            String dimName = GsonHelper.getAsString(json, "galaxy");
-            ResourceKey<Level> dimension = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(dimName));
-            Galaxy galaxy = Galaxy.getGalaxy(dimension);
+//            String dimName = GsonHelper.getAsString(json, "galaxy");
+//            ResourceKey<Level> dimension = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(dimName));
+            Galaxy galaxy = CelestialUtil.getGalaxyFromResourceLocation(dimensionPath);
+
+            CelestialLib.LOGGER.debug("dimensionPath: " + dimensionPath + ", galaxy: " + galaxy.getDimension());
 
             int scale = GsonHelper.getAsInt(json, "scale_ratio", 1);
 
             ItemStack cost = null;
-            boolean locked = false;
-            boolean hidden = false;
-            String unlockable = null; //FIXME change to criteria
+            boolean lightSpeedLocked = false;
+            boolean lightSpeedHidden = false;
+            ResourceLocation lightSpeedUnlockable = null;
 
             if (json.has("light_speed_travel")) {
                 JsonObject lightSpeedTravel = GsonHelper.getAsJsonObject(json, "light_speed_travel");
@@ -49,7 +53,7 @@ public class CLibGalaxyManager extends SimpleJsonResourceReloadListener {
                 if (!lightSpeedTravel.isJsonNull()) {
 
                     if (lightSpeedTravel.has("base_cost")) {
-                        JsonObject baseCost = GsonHelper.getAsJsonObject(json, "base_cost");
+                        JsonObject baseCost = GsonHelper.getAsJsonObject(lightSpeedTravel, "base_cost");
                         if (!baseCost.isJsonNull()) {
                             if (baseCost.has("item")) {
                                 int count = GsonHelper.getAsInt(baseCost, "count", 1);
@@ -61,28 +65,32 @@ public class CLibGalaxyManager extends SimpleJsonResourceReloadListener {
                     }
 
                     if (lightSpeedTravel.has("locked")) {
-                        locked = true;
+                        lightSpeedLocked = true;
                         JsonObject lockedJson = GsonHelper.getAsJsonObject(lightSpeedTravel, "locked");
 
                         if (!lockedJson.isJsonNull()) {
-                            hidden = GsonHelper.getAsBoolean(lockedJson, "hidden", false);
-                            unlockable = GsonHelper.getAsString(lockedJson, "unlock_criteria");
+                            lightSpeedHidden = GsonHelper.getAsBoolean(lockedJson, "hidden", false);
+                            if (lockedJson.has("unlock_advancement"))
+                                lightSpeedUnlockable = new ResourceLocation(GsonHelper.getAsString(lockedJson, "unlock_advancement"));
 
-                            if (unlockable == null) {
-                                throw new IllegalStateException("planet " + dimension + " missing unlock criteria");
+                            if (lightSpeedUnlockable == null) {
+                                CelestialLib.LOGGER.warn("galaxy {} is locked for light speed travel but missing unlock advancement", galaxy);
                             }
                         }
                     }
                 }
             }
 
+
             if (cost != null)
                 galaxy.lightSpeedCost(cost);
 
             galaxy.setGalaxyRatio(scale);
 
-            if (locked) {
-                galaxy.lockedAndMaybeHidden(hidden); //TODO add criteria
+            if (lightSpeedLocked) {
+                galaxy.lightSpeedLockedAndMaybeHidden(lightSpeedHidden);
+                CelestialUtil.addLockedLightSpeedCelestial(lightSpeedUnlockable, galaxy);
+
             }
         });
     }

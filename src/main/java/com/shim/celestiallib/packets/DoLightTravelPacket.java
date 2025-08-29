@@ -85,7 +85,6 @@ public class DoLightTravelPacket {
     }
 
     public static void handle(DoLightTravelPacket message, Supplier<NetworkEvent.Context> contextSupplier) {
-        CelestialLib.LOGGER.debug("handling doLightTravel packet?");
 
         NetworkEvent.Context context = contextSupplier.get();
         context.enqueueWork(() -> {
@@ -105,7 +104,6 @@ public class DoLightTravelPacket {
 
                     while (cost > 0) {
                         for (ItemStack item : inv.items) {
-                            CelestialLib.LOGGER.debug("running remove galaxy cost items… i: " + cost);
                             if (item.is(galaxyCost.getItem())) {
                                 int i = Math.min(item.getCount(), cost);
                                 cost -= i;
@@ -119,7 +117,6 @@ public class DoLightTravelPacket {
                 cost = planet.getLightSpeedCost(message.distance).getCount();
 
                 while (cost > 0) {
-                    CelestialLib.LOGGER.debug("running remove planet cost items… i: " + cost);
                     for (ItemStack item : inv.items) {
                         if (item.is(planet.getLightSpeedCost(message.distance).getItem())) {
                             int i = Math.min(item.getCount(), cost);

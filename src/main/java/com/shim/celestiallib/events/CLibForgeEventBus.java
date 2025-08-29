@@ -2,21 +2,17 @@ package com.shim.celestiallib.events;
 
 import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.api.armor.ISpacesuit;
-import com.shim.celestiallib.capabilities.CLibCapabilities;
+import com.shim.celestiallib.capabilities.*;
 import com.shim.celestiallib.api.capabilities.ISpaceFlight;
-import com.shim.celestiallib.capabilities.ICoolDown;
-import com.shim.celestiallib.capabilities.PlanetCoolDownHandler;
-import com.shim.celestiallib.capabilities.PlanetCooldown;
 import com.shim.celestiallib.config.CLibCommonConfig;
 import com.shim.celestiallib.api.effects.GravityEffect;
-import com.shim.celestiallib.packets.CLibPacketHandler;
-import com.shim.celestiallib.packets.LightSpeedMenuPacket;
-import com.shim.celestiallib.packets.SpaceFlightPacket;
+import com.shim.celestiallib.packets.*;
 import com.shim.celestiallib.util.CLibKeybinds;
 import com.shim.celestiallib.util.CelestialUtil;
 import com.shim.celestiallib.util.TeleportUtil;
 import com.shim.celestiallib.api.world.galaxy.Galaxy;
 import com.shim.celestiallib.api.world.planet.Planet;
+import com.shim.celestiallib.world.celestials.ICelestial;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceKey;
@@ -35,12 +31,15 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingEquipmentChangeEvent;
+import net.minecraftforge.event.entity.player.AdvancementEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.PacketDistributor;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Mod.EventBusSubscriber(modid = CelestialLib.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class CLibForgeEventBus {
@@ -52,17 +51,18 @@ public class CLibForgeEventBus {
 
         if (player.level.isClientSide()) {
             if (CLibKeybinds.OPEN_LIGHT_SPEED_TRAVEL.isDown()) {
-                if (Galaxy.isGalaxyDimension(player.level.dimension())) {
+                //FIXME
+//                if (Galaxy.isGalaxyDimension(player.level.dimension())) {
                     CLibPacketHandler.INSTANCE.sendToServer(new LightSpeedMenuPacket());
-                } else {
-                    player.displayClientMessage(new TranslatableComponent("menu.celestiallib.light_speed_travel.invalid"), true);
-                }
+//                } else {
+//                    player.displayClientMessage(new TranslatableComponent("menu.celestiallib.light_speed_travel.invalid"), true);
+//                }
             }
         }
 
         if (Galaxy.isGalaxyDimension(player.level.dimension())) {
             //Warn players they're approaching min Y levels in outer space
-            if (player.position().y <= player.level.getMinBuildHeight()) {
+            if (player.position().y <= player.level.getMinBuildHeight() + 10) {
                 player.displayClientMessage(new TranslatableComponent("space_travel.celestiallib.space_min_height"), true);
 
             }
@@ -138,6 +138,19 @@ public class CLibForgeEventBus {
 
                             //if we're looking at a block that corresponds with a destination…
                             if (destination != null) {
+
+                                IUnlock travelCap = CelestialLib.getCapability(player, CLibCapabilities.UNLOCK_CAPABILITY);
+
+                                //check to make sure destination isn't locked
+                                if (travelCap != null) {
+                                    if (travelCap.isCelestialLocked(Planet.getPlanet(destination))) {
+                                        //planet is locked, so cancel all travel
+                                        //display message to player so they know what's happening
+                                        TeleportUtil.displayLockedPlanetMessage(player, destination);
+                                        return;
+                                    }
+                                }
+
                                 //display message
                                 TeleportUtil.displayTeleportMessage(player, flightCap.getTeleportationCooldown(), destination);
 
@@ -174,9 +187,9 @@ public class CLibForgeEventBus {
         if (coolDownCap != null) {
 //            CelestialLib.LOGGER.debug("cooldownCap not null!");
 
-            for (Planet planet : coolDownCap.COOLDOWNS.keySet()) {
-                CelestialLib.LOGGER.debug("planet: " + planet.getDimension().location() + ", cooldown: " + coolDownCap.COOLDOWNS.get(planet).getCurrentCooldown());
-            }
+//            for (Planet planet : coolDownCap.COOLDOWNS.keySet()) {
+//                CelestialLib.LOGGER.debug("planet: " + planet.getDimension().location() + ", cooldown: " + coolDownCap.COOLDOWNS.get(planet).getCurrentCooldown());
+//            }
             if (event.phase.equals(TickEvent.Phase.END)) {
                 coolDownCap.decrementCooldowns();
             }
@@ -215,6 +228,13 @@ public class CLibForgeEventBus {
             if (travelCap != null) {
                 travelCap.sync(player);
             }
+
+            IUnlock unlockCap = CelestialLib.getCapability(player, CLibCapabilities.UNLOCK_CAPABILITY);
+
+            if (unlockCap != null) {
+                unlockCap.sync(player);
+            }
+
         }
 
         if (CLibCommonConfig.GRAVITY_EFFECTS.get()) {
@@ -269,6 +289,51 @@ public class CLibForgeEventBus {
     }
 
     @SubscribeEvent
+    public static void onAdvancement(AdvancementEvent event) {
+        Player player = event.getPlayer();
+            IUnlock travelCap = CelestialLib.getCapability(player, CLibCapabilities.UNLOCK_CAPABILITY);
+
+        if (travelCap != null) {
+
+//            CelestialLib.LOGGER.debug("travel cap isn't null 1/5");
+            List<ICelestial> lockedCelestials = CelestialUtil.getLockedCelestials(event.getAdvancement().getId());
+            if (lockedCelestials != null) {
+
+                for (ICelestial celestial : lockedCelestials) {
+                    travelCap.unlockCelestial(celestial);
+                    if (player instanceof  ServerPlayer serverPlayer)
+                        CLibPacketHandler.INSTANCE.sendTo(new ServerUnlockedCelestialPacket(player.getId(), celestial.getDimension(), false, celestial.isGalaxy()), serverPlayer.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
+
+                }
+            }
+
+            lockedCelestials = CelestialUtil.getLockedLightSpeedCelestials(event.getAdvancement().getId());
+            if (lockedCelestials != null) {
+                CelestialLib.LOGGER.debug("locked light speed celestials aren't null 2/5");
+
+                for (ICelestial celestial : lockedCelestials) {
+                    CelestialLib.LOGGER.debug("celestial: " + celestial + " 3/5");
+                        travelCap.unlockCelestialLightSpeed(celestial);
+
+                        CelestialLib.LOGGER.debug("on client side: " + event.getPlayer().level.isClientSide());
+                        if (player instanceof ServerPlayer serverPlayer) {
+                            CelestialLib.LOGGER.debug("is server player, sending packet to client…");
+//                            CLibPacketHandler.INSTANCE.sendToServer(new ServerUnlockedCelestialPacket(player.getId(), celestial.getDimension(), true, celestial.isGalaxy()));
+
+                            final PacketDistributor.PacketTarget targetPlayer = PacketDistributor.PLAYER.with(() -> serverPlayer);
+                            CLibPacketHandler.INSTANCE.send(targetPlayer, new ServerUnlockedCelestialPacket(player.getId(), celestial.getDimension(), true, celestial.isGalaxy()));
+
+//                            CLibPacketHandler.INSTANCE.sendTo(new ServerUnlockedCelestialPacket(player.getId(), celestial.getDimension(), true, celestial.isGalaxy()),
+//                                    serverPlayer.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
+
+                        }
+                }
+            }
+
+        }
+    }
+
+    @SubscribeEvent
     public static void onPlayerChangeDimensions(PlayerEvent.PlayerChangedDimensionEvent event) {
         Player player = event.getPlayer();
         ICoolDown travelCap = CelestialLib.getCapability(player, CLibCapabilities.COOLDOWN_CAPABILITY);
@@ -283,6 +348,35 @@ public class CLibForgeEventBus {
 
             travelCap.sync(player);
         }
+
+        IUnlock unlockCap = CelestialLib.getCapability(player, CLibCapabilities.UNLOCK_CAPABILITY);
+
+        if (unlockCap != null) {
+            unlockCap.sync(player);
+        }
+
+//        //check master list for relevant conditions
+//        List<ICelestial> celestials = CelestialUtil.getCelestialsWithMatchingCondition(UnlockConditions.PLANET_VISITED.get());
+//
+//        //get player capability
+//        IUnlock conditionCap = CelestialLib.getCapability(player, CLibCapabilities.UNLOCK_CONDITION_CAPABILITY);
+//
+//        for (ICelestial celestial : celestials) {
+//            //check if planets/galaxies gathered from master list are still locked (if they're still in the locked map)
+//            if (conditionCap.getLockedCelestials().containsKey(celestial)) {
+//                //check if planet/galaxy still needs THIS condition unlocked
+//                if (conditionCap.getLockedCelestials().get(celestial).containsKey(UnlockConditions.PLANET_VISITED.get()) &&
+//                        conditionCap.getLockedCelestials().get(celestial).get(UnlockConditions.PLANET_VISITED.get())) {
+//                    //check if exact criteria matches
+//                    for (UnlockCondition c : conditionCap.getLockedCelestials().get(celestial).keySet()) {
+//                        if (c.matches(event.getTo())) {
+//
+//                        }
+//                    }
+//
+//                }
+//            }
+//        }
     }
 
 
@@ -321,6 +415,9 @@ public class CLibForgeEventBus {
                 ICoolDown newTravelData = event.getPlayer().getCapability(CLibCapabilities.COOLDOWN_CAPABILITY).orElse(null);
                 if (oldTravelData != null && newTravelData != null) newTravelData.setData(oldTravelData.getData());
 
+                IUnlock oldUnlockData = event.getOriginal().getCapability(CLibCapabilities.UNLOCK_CAPABILITY).orElse(null);
+                IUnlock newUnlockData = event.getPlayer().getCapability(CLibCapabilities.UNLOCK_CAPABILITY).orElse(null);
+                if (oldUnlockData != null && newUnlockData != null) newUnlockData.setData(oldUnlockData.getData());
 
                 event.getOriginal().invalidateCaps();
             }

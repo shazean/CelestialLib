@@ -2,10 +2,10 @@ package com.shim.celestiallib.api.world.planet;
 
 import com.shim.celestiallib.api.effects.GravityEffect;
 import com.shim.celestiallib.api.world.galaxy.Galaxy;
+import com.shim.celestiallib.world.celestials.ICelestial;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -16,11 +16,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class Planet extends ForgeRegistryEntry<Planet> {
+public class Planet extends ForgeRegistryEntry<Planet> implements ICelestial {
     private GravityEffect gravity = null;
     private final ResourceKey<Level> dimension;
     private final Galaxy galaxy;
     boolean isLocked = false;
+    boolean isLightSpeedLocked = false;
     boolean isHidden = false;
     ResourceLocation texture;
     int textureSize = 16; //default size
@@ -29,6 +30,8 @@ public class Planet extends ForgeRegistryEntry<Planet> {
 
     public static final Map<ResourceKey<Level>, Planet> DIMENSIONS = new HashMap<>();
     private boolean cooldownsEnabled = true;
+
+    public static ResourceLocation advancementUnlock = new ResourceLocation("story/upgrade_tools");
 
     public Planet(ResourceKey<Level> dimension, Galaxy galaxy) {
         this.dimension = dimension;
@@ -52,14 +55,27 @@ public class Planet extends ForgeRegistryEntry<Planet> {
     }
 
     /**
-     * Set a planet to be locked and possibly hidden.
+     * Set a planet to be locked and not able to be traveled to via
+     * {@link com.shim.celestiallib.api.capabilities.ISpaceFlight} until unlocked.
+     * Light speed travel is also unavailable while this is locked.
+     * Adding the file for unlocking this also automatically sets it as locked,
+     * so this method can be skipped during registry.
+     */
+    public Planet locked() {
+        this.isLocked = true;
+        return this;
+    }
+
+    /**
+     * Set a planet to be locked and possibly hidden from light speed travel.
      * If it is locked, it can not be visited by light speed travel until it is unlocked.
      * If it is hidden, it is not even visible in the light speed travel until it is unlocked.
      * This only affects light speed travel and not other means of visiting a planet/dimension.
+     * Adding the file for unlocking this also automatically sets it as locked,
+     * so this method can be skipped during registry.
      */
-    public Planet lockedAndMaybeHidden(boolean isHidden) {
-        //TODO accept a criteria for unlocking
-        this.isLocked = true;
+    public Planet lightSpeedLockedAndMaybeHidden(boolean isHidden) {
+        this.isLightSpeedLocked = true;
         this.isHidden = isHidden;
         return this;
     }
@@ -119,6 +135,10 @@ public class Planet extends ForgeRegistryEntry<Planet> {
         return this.isLocked;
     }
 
+    public boolean isLightSpeedLocked() {
+        return this.isLightSpeedLocked;
+    }
+
     public boolean isHidden() {
         return this.isHidden;
     }
@@ -149,4 +169,12 @@ public class Planet extends ForgeRegistryEntry<Planet> {
         return new ItemStack(this.lightSpeedCost.getItem(), cost);
     }
 
+    public boolean isMoon() {
+        return false;
+    }
+
+    @Override
+    public boolean isGalaxy() {
+        return false;
+    }
 }

@@ -4,9 +4,11 @@ import com.google.common.collect.Lists;
 import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.capabilities.CLibCapabilities;
 import com.shim.celestiallib.capabilities.ICoolDown;
+import com.shim.celestiallib.capabilities.IUnlock;
 import com.shim.celestiallib.capabilities.PlanetCooldown;
 import com.shim.celestiallib.util.CelestialUtil;
 import com.shim.celestiallib.api.world.planet.Planet;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -49,6 +51,14 @@ public class PlanetWidget extends GuiComponent {
         List<Component> tooltip = Lists.newArrayList();
 
         tooltip.add(CelestialUtil.getDisplayName(planet.getDimension()));
+
+        IUnlock travelCap = CelestialLib.getCapability(CelestialLib.PROXY.getPlayer(), CLibCapabilities.UNLOCK_CAPABILITY);
+
+        if (travelCap != null) {
+            if (travelCap.isCelestialLightSpeedLocked(planet)) {
+                tooltip.add(new TranslatableComponent("menu.celestiallib.locked").withStyle(ChatFormatting.RED));
+            }
+        }
 
         BlockPos planetLoc = CelestialUtil.getPlanetBlockCoordinates(planet.getDimension());
         if (planetLoc != null)

@@ -2,6 +2,7 @@ package com.shim.celestiallib.api.world.galaxy;
 
 import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.util.CelestialUtil;
+import com.shim.celestiallib.world.celestials.ICelestial;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -13,10 +14,10 @@ import net.minecraftforge.registries.ForgeRegistryEntry;
 import java.util.*;
 import java.util.function.Supplier;
 
-public class Galaxy extends ForgeRegistryEntry<Galaxy> {
+public class Galaxy extends ForgeRegistryEntry<Galaxy> implements ICelestial {
     int galaxyRatio = 10; //DEFAULT
     private final ResourceKey<Level> dimension;
-    boolean isLocked = false;
+    boolean isLightSpeedLocked = false;
     boolean isHidden = false;
     private ResourceLocation icon = new ResourceLocation(CelestialLib.MODID, "textures/gui/light_speed_travel/galaxy_icons/default_galaxy.png"); //DEFAULT
     private ResourceLocation backgroundImage;
@@ -48,9 +49,9 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> {
      * If it is hidden, it is not even visible in the light speed travel until it is unlocked.
      * Note: Setting these values do nothing if there is only a single galaxy
      */
-    public Galaxy lockedAndMaybeHidden(boolean isHidden) {
+    public Galaxy lightSpeedLockedAndMaybeHidden(boolean isHidden) {
         //TODO accept a criteria for unlocking
-        this.isLocked = true;
+        this.isLightSpeedLocked = true;
         this.isHidden = isHidden;
         return this;
     }
@@ -103,6 +104,11 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> {
         return this;
     }
 
+    //does nothing, because there's no way to travel to galaxies except through light speed travel
+    public Galaxy locked() {
+        return this;
+    }
+
     //END GALAXY BUILDER METHODS
 
     public static Galaxy getGalaxy(ResourceKey<Level> dimension) {
@@ -139,17 +145,12 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> {
         return DIMENSIONS.containsKey(dimension);
     }
 
-    public static void unlockGalaxies(Advancement advancement) {
-
-    }
-
-    public void unlock() {
-        this.isLocked = false;
-        this.isHidden = false;
-    }
-
     public boolean isLocked() {
-        return this.isLocked;
+        return this.isLightSpeedLocked;
+    }
+
+    public boolean isLightSpeedLocked() {
+        return this.isLightSpeedLocked;
     }
 
     public boolean isHidden() {
@@ -218,5 +219,10 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> {
 
     public Supplier<Integer> getCooldownDecrement() {
         return this.cooldownDecrement;
+    }
+
+    @Override
+    public boolean isGalaxy() {
+        return true;
     }
 }

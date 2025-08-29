@@ -1,4 +1,4 @@
-package com.shim.celestiallib.world.planet;
+package com.shim.celestiallib.world.celestials.planet;
 
 import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.api.world.planet.Planet;

@@ -71,6 +71,13 @@ public class TeleportUtil {
         }
     }
 
+    public static void displayLockedPlanetMessage(Entity entity, ResourceKey<Level> destination) {
+        if (entity instanceof Player player) {
+                player.displayClientMessage(CelestialUtil.getDisplayName(destination)
+                                .append(new TranslatableComponent("celestial.teleport.locked")), true);
+        }
+    }
+
     public static ResourceKey<Level> getTeleportLocation(Vec3 location, BlockState blockWeSee, Galaxy galaxy) {
         ResourceKey<Level> planet = null;
         List<ResourceKey<Level>> moons;
@@ -114,7 +121,9 @@ public class TeleportUtil {
 
         for (Block block : blocksToComp) {
             //  return planet
-            if (block.defaultBlockState().is(blockWeSee.getBlock())) return planet;
+            if (block.defaultBlockState().is(blockWeSee.getBlock())) {
+                return planet;
+            }
         }
         //…or one of its moons
         moons = PLANET_MOONS_WITH_PLANET.get(planet);
@@ -172,7 +181,6 @@ public class TeleportUtil {
     public static void teleport(Entity spaceVehicle, @Nullable ArrayList<Entity> passengers, ResourceKey<Level> destinationDim, BlockPos locationInPlace) {
         if (spaceVehicle.canChangeDimensions()) {
 
-            CelestialLib.LOGGER.debug("teleporting");
 
             //get server and level
             Level entityWorld = spaceVehicle.level;
@@ -196,12 +204,10 @@ public class TeleportUtil {
                     if (!entityWorld.isClientSide) {
                         ServerLevel level = (ServerLevel) spaceVehicle.getLevel();
                         level.getProfiler().push("placing");
-                        CelestialLib.LOGGER.debug("before moving, entity loc: " + spaceVehicle.position());
 
                         teleportTo(locationInPlace, spaceVehicle, passengers);
 
 //                        spaceVehicle.moveTo(locationInPlace, 0.0F, 0.0F);
-                        CelestialLib.LOGGER.debug("after moving, entity loc: " + spaceVehicle.position());
 //
 //                        if (passengers != null) {
 //                            for (Entity passenger : passengers) {

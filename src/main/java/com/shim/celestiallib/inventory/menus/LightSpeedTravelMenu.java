@@ -6,7 +6,7 @@ import com.shim.celestiallib.api.capabilities.ISpaceFlight;
 import com.shim.celestiallib.inventory.CLibMenus;
 import com.shim.celestiallib.packets.CLibPacketHandler;
 import com.shim.celestiallib.packets.DoLightTravelPacket;
-import com.shim.celestiallib.packets.ServerResetCooldownPacket;
+import com.shim.celestiallib.packets.ResetCooldownPacket;
 import com.shim.celestiallib.util.CelestialUtil;
 import com.shim.celestiallib.api.world.galaxy.Galaxy;
 import com.shim.celestiallib.api.world.planet.Planet;
@@ -84,9 +84,9 @@ public class LightSpeedTravelMenu extends AbstractContainerMenu {
                 }
 
                 if (spaceVehicle instanceof Player) {
-                    CLibPacketHandler.INSTANCE.sendToServer(new ServerResetCooldownPacket(spaceVehicle.getId(), planet.getDimension()));
+                    CLibPacketHandler.INSTANCE.sendToServer(new ResetCooldownPacket(spaceVehicle.getId(), planet.getDimension()));
                 } else if (spaceVehicle.getControllingPassenger() == player) {
-                    CLibPacketHandler.INSTANCE.sendToServer(new ServerResetCooldownPacket(player.getId(), planet.getDimension()));
+                    CLibPacketHandler.INSTANCE.sendToServer(new ResetCooldownPacket(player.getId(), planet.getDimension()));
                 }
 
                 CLibPacketHandler.INSTANCE.sendToServer(new DoLightTravelPacket(spaceVehicle.getId(), entityIds, galaxy.getDimension(), planet.getDimension(), getTravelDistance(planet)));

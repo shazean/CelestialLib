@@ -1,4 +1,4 @@
-package com.shim.celestiallib.world.galaxy;
+package com.shim.celestiallib.world.celestials.galaxy;
 
 import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.api.world.galaxy.Galaxy;

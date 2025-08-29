@@ -5,6 +5,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.capabilities.CLibCapabilities;
+import com.shim.celestiallib.capabilities.ICoolDown;
+import com.shim.celestiallib.capabilities.IUnlock;
 import com.shim.celestiallib.capabilities.PlanetCoolDownHandler;
 import com.shim.celestiallib.inventory.menus.LightSpeedTravelMenu;
 import com.shim.celestiallib.util.CelestialUtil;
@@ -133,13 +135,16 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
             int yPos = Mth.clamp((int) ((mouseY - y - 7) / 18), 0, 5);
 
             Galaxy galaxy = this.galaxiesOnScreen[yPos];
+            IUnlock cap = CelestialLib.getCapability(CelestialLib.PROXY.getPlayer(), CLibCapabilities.UNLOCK_CAPABILITY);
 
-            if (galaxy != null && !galaxy.isLocked()) {
-                this.selectedGalaxy = galaxy;
-                this.selectedPlanet = null;
-                this.planetsOnScreen.clear();
-                this.yDrag = 0;
-                this.xDrag = 0;
+            if (cap != null) {
+                if (galaxy != null && !cap.isCelestialLightSpeedLocked(galaxy)) {
+                    this.selectedGalaxy = galaxy;
+                    this.selectedPlanet = null;
+                    this.planetsOnScreen.clear();
+                    this.yDrag = 0;
+                    this.xDrag = 0;
+                }
             }
         }
 
@@ -184,10 +189,13 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
 
             if (this.isHovering(x - this.leftPos + widget.getX(), y - this.topPos + widget.getY(), widget.getWidth(), widget.getHeight(), mouseX, mouseY)) {
                 if (widget.getPlanet().getGalaxy().areCooldownsEnabled() && widget.getPlanet().areCooldownsEnabled()) {
-                    PlanetCoolDownHandler coolDownCap = (PlanetCoolDownHandler) CelestialLib.getCapability(CelestialLib.PROXY.getPlayer(), CLibCapabilities.COOLDOWN_CAPABILITY);
+                    ICoolDown coolDownCap = CelestialLib.getCapability(CelestialLib.PROXY.getPlayer(), CLibCapabilities.COOLDOWN_CAPABILITY);
                     if (coolDownCap != null) {
                         if (coolDownCap.getCooldown(widget.getPlanet()).getCurrentCooldown() == 0) {
-                            this.selectedPlanet = widget.getPlanet();
+
+                            IUnlock unlockCap = CelestialLib.getCapability(CelestialLib.PROXY.getPlayer(), CLibCapabilities.UNLOCK_CAPABILITY);
+                            if (unlockCap != null && !unlockCap.isCelestialLightSpeedLocked(widget.getPlanet()))
+                                this.selectedPlanet = widget.getPlanet();
                         }
                         break;
                     }
@@ -214,9 +222,12 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
             blit(poseStack, x + 109, y + scrollbarY, 230, 0, 6, 27, 512, 256);
         }
 
+        IUnlock travelCap = CelestialLib.getCapability(CelestialLib.PROXY.getPlayer(), CLibCapabilities.UNLOCK_CAPABILITY);
+
+        if (travelCap != null) {
         for (Galaxy galaxy : Galaxy.getAlphabetizedList()) {
 
-            boolean locked = galaxy.isLocked();
+            boolean locked = travelCap.isCelestialLightSpeedLocked(galaxy);
             boolean hidden = galaxy.isHidden();
             j++;
 
@@ -278,6 +289,7 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
             }
 
             i += 18;
+        }
 
         }
     }

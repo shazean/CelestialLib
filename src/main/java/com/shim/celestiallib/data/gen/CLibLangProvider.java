@@ -32,6 +32,7 @@ public class CLibLangProvider extends LanguageProvider {
         add("menu.celestiallib.light_speed_travel.have", "Have: ");
         add("menu.celestiallib.light_speed_travel.need", "Need: ");
         add("menu.celestiallib.light_speed_travel.invalid", "Invalid location for light speed travel");
+        add("menu.celestiallib.locked", "Locked");
 
         add("key.categories.celestiallib.light_speed.light_speed_travel", "Open Light Speed Travel Menu");
 

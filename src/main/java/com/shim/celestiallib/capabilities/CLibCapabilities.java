@@ -16,10 +16,12 @@ public class CLibCapabilities {
 
     public static final Capability<ISpaceFlight> SPACE_FLIGHT_CAPABILITY = CapabilityManager.get(new CapabilityToken<>() {});
     public static final Capability<ICoolDown> COOLDOWN_CAPABILITY = CapabilityManager.get(new CapabilityToken<>() {});
+    public static final Capability<IUnlock> UNLOCK_CAPABILITY = CapabilityManager.get(new CapabilityToken<>() {});
 
     public static void registerCapabilities(RegisterCapabilitiesEvent eventIn) {
         eventIn.register(ISpaceFlight.class);
         eventIn.register(ICoolDown.class);
+        eventIn.register(IUnlock.class);
     }
 
     public static void attachEntityCapabilities(AttachCapabilitiesEvent<Entity> eventIn) {
@@ -27,6 +29,11 @@ public class CLibCapabilities {
             if (!eventIn.getObject().getCapability(COOLDOWN_CAPABILITY).isPresent()) {
                 eventIn.addCapability(new ResourceLocation(CelestialLib.MODID, "planet_cooldown"), new PlanetCoolDownProvider());
             }
+
+            if (!eventIn.getObject().getCapability(UNLOCK_CAPABILITY).isPresent()) {
+                eventIn.addCapability(new ResourceLocation(CelestialLib.MODID, "unlock"), new UnlockCelestialsProvider());
+            }
+
         }
     }
 }

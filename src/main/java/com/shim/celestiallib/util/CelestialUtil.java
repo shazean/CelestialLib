@@ -1,9 +1,11 @@
 package com.shim.celestiallib.util;
 
 import com.shim.celestiallib.CelestialLib;
+import com.shim.celestiallib.api.world.galaxy.Galaxy;
 import com.shim.celestiallib.util.teleportation.AbstractCelestialTeleportData;
 import com.shim.celestiallib.util.teleportation.CelestialCoordinateTeleport;
 import com.shim.celestiallib.api.world.planet.Planet;
+import com.shim.celestiallib.world.celestials.ICelestial;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -13,8 +15,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class CelestialUtil {
 
@@ -65,7 +66,6 @@ public class CelestialUtil {
     public static void clearDimensionLocations() {
         DIMENSION_LOCATION.clear();
     }
-
 
     public static BlockPos getDimensionToSpaceCoordinates(ResourceKey<Level> dimension, ChunkPos pos) {
         Vec3 coord = getDimensionLocation(dimension).getOutputCoordinates(pos.x, pos.z); //new Vec3(CE_DIMENSION_LOCATION.get(dimension).x() * CelestialUtil.getSpaceRatio(), 0, CE_DIMENSION_LOCATION.get(dimension).z() * CelestialUtil.getSpaceRatio()); //getDimensionLocation(dimension).getOutputCoordinates(pos.x, pos.z); //FIXME
@@ -124,8 +124,98 @@ public class CelestialUtil {
     }
 
     public static Planet getPlanetFromString(String string) {
-        ResourceKey<Level> dimension = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(string));
+        return getPlanetFromResourceLocation(new ResourceLocation(string));
+    }
+
+    public static Planet getPlanetFromResourceLocation(ResourceLocation loc) {
+        ResourceKey<Level> dimension = ResourceKey.create(Registry.DIMENSION_REGISTRY, loc);
         return Planet.getPlanet(dimension);
     }
+
+    public static Galaxy getGalaxyFromString(String string) {
+        return getGalaxyFromResourceLocation(new ResourceLocation(string));
+    }
+
+    public static Galaxy getGalaxyFromResourceLocation(ResourceLocation loc) {
+        ResourceKey<Level> dimension = ResourceKey.create(Registry.DIMENSION_REGISTRY, loc);
+        return Galaxy.getGalaxy(dimension);
+    }
+
+
+    public static Map<ResourceLocation, List<ICelestial>> LOCKED_CELESTIALS = new HashMap<>();
+    public static Map<ResourceLocation, List<ICelestial>> LOCKED_CELESTIALS_LIGHT_SPEED = new HashMap<>();
+
+    public static void clearLockedCelestials() {
+        LOCKED_CELESTIALS.clear();
+    }
+
+    public static void clearLockedLightSpeedCelestials() {
+        LOCKED_CELESTIALS_LIGHT_SPEED.clear();
+    }
+
+    public static void addLockedCelestial(ResourceLocation advancement, ICelestial celestial) {
+
+        if (LOCKED_CELESTIALS.containsKey(advancement)) {
+            ArrayList<ICelestial> list = new ArrayList<> (LOCKED_CELESTIALS.get(advancement));
+            list.add(celestial);
+            LOCKED_CELESTIALS.put(advancement, list);
+        } else {
+            LOCKED_CELESTIALS.put(advancement, Collections.singletonList(celestial));
+        }
+    }
+
+    public static void addLockedLightSpeedCelestial(ResourceLocation advancement, ICelestial celestial) {
+
+
+        if (LOCKED_CELESTIALS_LIGHT_SPEED.containsKey(advancement)) {
+            ArrayList<ICelestial> list = new ArrayList<> (LOCKED_CELESTIALS_LIGHT_SPEED.get(advancement));
+            list.add(celestial);
+            LOCKED_CELESTIALS_LIGHT_SPEED.put(advancement, list);
+            CelestialLib.LOGGER.debug("locked celestials: " + LOCKED_CELESTIALS_LIGHT_SPEED.values());
+            CelestialLib.LOGGER.debug("celestial locked: " + LOCKED_CELESTIALS_LIGHT_SPEED.get(advancement).get(0).isLocked());
+
+        } else {
+            LOCKED_CELESTIALS_LIGHT_SPEED.put(advancement, Collections.singletonList(celestial));
+        }
+    }
+
+    public static List<ICelestial> getLockedCelestials(ResourceLocation advancement) {
+        return LOCKED_CELESTIALS.getOrDefault(advancement, null);
+    }
+
+    public static List<ICelestial> getLockedLightSpeedCelestials(ResourceLocation advancement) {
+        return LOCKED_CELESTIALS_LIGHT_SPEED.getOrDefault(advancement, null);
+    }
+
+
+//    protected static Map<UnlockCondition, ICelestial> UNLOCKABLE_CELESTIALS = new HashMap<>();
+//
+//    public static void clearUnlockableCelestials() {
+//        UNLOCKABLE_CELESTIALS.clear();
+//    }
+//
+//    public static ICelestial getUnlockableCelestial(UnlockCondition condition) {
+//        return UNLOCKABLE_CELESTIALS.get(condition);
+//    }
+//
+//    public static void addUnlockableCelestial(UnlockCondition condition, ICelestial celestial) {
+//        UNLOCKABLE_CELESTIALS.put(condition, celestial);
+//    }
+//
+//    public static void addUnlockableCelestial(List<UnlockCondition> conditions, ICelestial celestial) {
+//        for (UnlockCondition condition : conditions) {
+//            UNLOCKABLE_CELESTIALS.put(condition, celestial);
+//        }
+//    }
+//
+//    public static List<ICelestial> getCelestialsWithMatchingCondition(UnlockCondition condition) {
+//        ArrayList<ICelestial> list = new ArrayList<>();
+//        for (UnlockCondition c : UNLOCKABLE_CELESTIALS.keySet()) {
+//            if (c.equals(condition)) {
+//                list.add(UNLOCKABLE_CELESTIALS.get(c));
+//            }
+//        }
+//        return list;
+//    }
 
 }
