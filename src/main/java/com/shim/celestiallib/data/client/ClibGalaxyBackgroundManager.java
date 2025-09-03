@@ -6,8 +6,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.shim.celestiallib.api.world.galaxy.Galaxy;
 import com.shim.celestiallib.util.CelestialUtil;
-import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
@@ -16,13 +14,13 @@ import net.minecraft.util.profiling.ProfilerFiller;
 
 import java.util.Map;
 
-public class ClibGalaxyImageManager extends SimpleJsonResourceReloadListener {
+public class ClibGalaxyBackgroundManager extends SimpleJsonResourceReloadListener {
     private static final Gson GSON = (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
     private static final int MIN = 210;
     private static final int MAX = 1024;
 
 
-    public ClibGalaxyImageManager() {
+    public ClibGalaxyBackgroundManager() {
         super(GSON, "models/celestial/galaxy_background");
     }
 

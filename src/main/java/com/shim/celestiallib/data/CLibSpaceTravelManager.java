@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.shim.celestiallib.api.world.planet.Planet;
 import com.shim.celestiallib.util.CelestialUtil;
 import com.shim.celestiallib.util.teleportation.CelestialCoordinateTeleport;
 import com.shim.celestiallib.util.teleportation.CelestialScaledTeleport;
@@ -35,8 +36,8 @@ public class CLibSpaceTravelManager extends SimpleJsonResourceReloadListener {
 
             JsonObject json = element.getAsJsonObject();
 
-            String dimName = GsonHelper.getAsString(json, "dimension");
-            ResourceKey<Level> dimension = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(dimName));
+//            String dimName = GsonHelper.getAsString(json, "dimension");
+            ResourceKey<Level> dimension = ResourceKey.create(Registry.DIMENSION_REGISTRY, dimensionPath);
 
             String galaxyName = GsonHelper.getAsString(json, "galaxy");
             Galaxy galaxy = Galaxy.getGalaxy(ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(galaxyName)));

@@ -3,7 +3,9 @@ package com.shim.celestiallib.data.gen;
 import com.google.gson.JsonObject;
 import com.shim.celestiallib.api.world.planet.Planet;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -69,8 +71,16 @@ public class PlanetIcon {
             }
         }
 
-        public PlanetIcon save(Consumer<PlanetIcon> consumer, String name) {
-            PlanetIcon dimension = this.build(new ResourceLocation(name));
+        public PlanetIcon save(Consumer<PlanetIcon> consumer, Planet planet) {
+            return save(consumer, planet.getDimension());
+        }
+
+        public PlanetIcon save(Consumer<PlanetIcon> consumer, ResourceKey<Level> dimension) {
+            return save(consumer, dimension.location());
+        }
+
+        public PlanetIcon save(Consumer<PlanetIcon> consumer, ResourceLocation name) {
+            PlanetIcon dimension = this.build(name);
             consumer.accept(dimension);
             return dimension;
         }

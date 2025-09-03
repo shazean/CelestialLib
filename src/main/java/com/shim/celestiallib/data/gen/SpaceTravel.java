@@ -2,6 +2,7 @@ package com.shim.celestiallib.data.gen;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.shim.celestiallib.api.world.planet.Planet;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -26,23 +27,21 @@ import java.util.Set;
 
 public class SpaceTravel {
     private final ResourceLocation id;
-    private final ResourceKey<Level> dimension;
     @Nullable
     private final SpaceCoordinates coordinates;
     @Nullable
     private final double coordinateScale;
 
-    public SpaceTravel(ResourceLocation id, ResourceKey<Level> dimension, SpaceCoordinates coordinates) {
-        this(id, dimension, coordinates, -1);
+    public SpaceTravel(ResourceLocation id, SpaceCoordinates coordinates) {
+        this(id, coordinates, -1);
     }
 
-    public SpaceTravel(ResourceLocation id, ResourceKey<Level> dimension, double coordinateScale) {
-        this(id, dimension, null, coordinateScale);
+    public SpaceTravel(ResourceLocation id, double coordinateScale) {
+        this(id, null, coordinateScale);
     }
 
-    public SpaceTravel(ResourceLocation id, ResourceKey<Level> dimension, SpaceCoordinates coordinates, double coordinateScale) {
+    public SpaceTravel(ResourceLocation id, SpaceCoordinates coordinates, double coordinateScale) {
         this.id = id;
-        this.dimension = dimension;
         this.coordinates = coordinates;
         this.coordinateScale = coordinateScale;
     }
@@ -52,7 +51,7 @@ public class SpaceTravel {
     }
 
     public Builder deconstruct() {
-        return new Builder(this.dimension, this.coordinates, this.coordinateScale);
+        return new Builder(this.coordinates, this.coordinateScale);
     }
 
     public ResourceLocation getId() {
@@ -77,21 +76,19 @@ public class SpaceTravel {
     }
 
     public static class Builder {
-        ResourceKey<Level> dimension;
         @Nullable
         SpaceCoordinates coordinates;
         double coordinateScale;
 
-        public Builder(ResourceKey<Level> dimension, @Nullable SpaceCoordinates coordinates) {
-            this(dimension, coordinates, -1);
+        public Builder(@Nullable SpaceCoordinates coordinates) {
+            this(coordinates, -1);
         }
 
-        public Builder(ResourceKey<Level> dimension, double coordinateScale) {
-            this(dimension, null, coordinateScale);
+        public Builder(double coordinateScale) {
+            this(null, coordinateScale);
         }
 
-        public Builder(ResourceKey<Level> dimension, @Nullable SpaceCoordinates coordinates, double coordinateScale) {
-            this.dimension = dimension;
+        public Builder(@Nullable SpaceCoordinates coordinates, double coordinateScale) {
             this.coordinates = coordinates;
             this.coordinateScale = coordinateScale;
         }
@@ -99,11 +96,6 @@ public class SpaceTravel {
         private Builder() {
             this.coordinates = null;
             this.coordinateScale = -1;
-        }
-
-        public Builder dimension(ResourceKey<Level> dimension) {
-            this.dimension = dimension;
-            return this;
         }
 
         public Builder coordinates(SpaceCoordinates coord) {
@@ -117,9 +109,6 @@ public class SpaceTravel {
         }
 
         public boolean canBuild(Function<ResourceLocation, SpaceTravel> p_138393_) {
-            if (dimension == null) {
-                return false;
-            }
             if (coordinates == null && coordinateScale == -1) {
                 throw new IllegalStateException("Either coordinates or coordinate scale must be set!");
             }
@@ -134,20 +123,26 @@ public class SpaceTravel {
             if (!this.canBuild((loc) -> null)) {
                 throw new IllegalStateException("Tried to build incomplete teleport!");
             } else {
-                return new SpaceTravel(resourceLocation, this.dimension, this.coordinates, this.coordinateScale);
+                return new SpaceTravel(resourceLocation, this.coordinates, this.coordinateScale);
             }
         }
 
-        public SpaceTravel save(Consumer<SpaceTravel> consumer, String name) {
-            SpaceTravel dimension = this.build(new ResourceLocation(name));
+        public SpaceTravel save(Consumer<SpaceTravel> consumer, Planet planet) {
+            return save(consumer, planet.getDimension());
+        }
+
+        public SpaceTravel save(Consumer<SpaceTravel> consumer, ResourceKey<Level> dimension) {
+            return save(consumer, dimension.location());
+        }
+
+        public SpaceTravel save(Consumer<SpaceTravel> consumer, ResourceLocation name) {
+            SpaceTravel dimension = this.build(name);
             consumer.accept(dimension);
             return dimension;
         }
 
         public JsonObject serializeToJson() {
             JsonObject json = new JsonObject();
-
-            json.addProperty("dimension", this.dimension.location().toString());
 
             if (this.coordinates != null) {
                 json.add("space_chunk_coordinates", this.coordinates.serializeToJson());
@@ -161,13 +156,6 @@ public class SpaceTravel {
         }
 
         public void serializeToNetwork(FriendlyByteBuf byteBuf) {
-            if (this.dimension == null) {
-                byteBuf.writeBoolean(false);
-            } else {
-                byteBuf.writeBoolean(true);
-                byteBuf.writeResourceLocation(this.dimension.getRegistryName());
-            }
-
             if (this.coordinates == null) {
                 byteBuf.writeBoolean(false);
             } else {
@@ -181,7 +169,6 @@ public class SpaceTravel {
                 byteBuf.writeBoolean(true);
                 byteBuf.writeDouble(this.coordinateScale);
             }
-
         }
     }
 }

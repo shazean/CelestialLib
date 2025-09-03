@@ -4,6 +4,7 @@ package com.shim.celestiallib.data.gen;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.shim.celestiallib.api.world.planet.Planet;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -30,20 +31,18 @@ import java.util.Set;
 
 public class PlanetStructureTravel {
     private final ResourceLocation id;
-    private final ResourceKey<Level> dimension;
     private final PlanetStructureTravel.SpaceCoordinates coordinates;
     private final List<Block> blocksList;
 
 
-    public PlanetStructureTravel(ResourceLocation id, ResourceKey<Level> dimension, PlanetStructureTravel.SpaceCoordinates coordinates, List<Block> blocksList) {
+    public PlanetStructureTravel(ResourceLocation id, PlanetStructureTravel.SpaceCoordinates coordinates, List<Block> blocksList) {
         this.id = id;
-        this.dimension = dimension;
         this.coordinates = coordinates;
         this.blocksList = blocksList;
     }
 
     public PlanetStructureTravel.Builder deconstruct() {
-        return new PlanetStructureTravel.Builder(this.dimension, this.coordinates, this.blocksList);
+        return new PlanetStructureTravel.Builder(this.coordinates, this.blocksList);
     }
 
     public static Builder builder() {
@@ -72,23 +71,16 @@ public class PlanetStructureTravel {
     }
 
     public static class Builder {
-        ResourceKey<Level> dimension;
         PlanetStructureTravel.SpaceCoordinates coordinates;
         List<Block> blocksList;
 
-        public Builder(ResourceKey<Level> dimension, PlanetStructureTravel.SpaceCoordinates coordinates, List<Block> blocksList) {
-            this.dimension = dimension;
+        public Builder(PlanetStructureTravel.SpaceCoordinates coordinates, List<Block> blocksList) {
             this.coordinates = coordinates;
             this.blocksList = blocksList;
         }
 
         private Builder() {
             this.blocksList = new ArrayList<>();
-        }
-
-        public PlanetStructureTravel.Builder dimension(ResourceKey<Level> dimension) {
-            this.dimension = dimension;
-            return this;
         }
 
         public PlanetStructureTravel.Builder coordinates(PlanetStructureTravel.SpaceCoordinates coord) {
@@ -102,7 +94,7 @@ public class PlanetStructureTravel {
         }
 
         public boolean canBuild(Function<ResourceLocation, PlanetStructureTravel> p_138393_) {
-            return dimension != null && coordinates != null && blocksList != null;
+            return coordinates != null && blocksList != null;
         }
 
         public PlanetStructureTravel build(ResourceLocation resourceLocation) {
@@ -112,20 +104,26 @@ public class PlanetStructureTravel {
             })) {
                 throw new IllegalStateException("Tried to build incomplete teleport!");
             } else {
-                return new PlanetStructureTravel(resourceLocation, this.dimension, this.coordinates, this.blocksList);
+                return new PlanetStructureTravel(resourceLocation, this.coordinates, this.blocksList);
             }
         }
 
-        public PlanetStructureTravel save(Consumer<PlanetStructureTravel> consumer, String name) {
-            PlanetStructureTravel dimension = this.build(new ResourceLocation(name));
+        public PlanetStructureTravel save(Consumer<PlanetStructureTravel> consumer, Planet planet) {
+            return save(consumer, planet.getDimension());
+        }
+
+        public PlanetStructureTravel save(Consumer<PlanetStructureTravel> consumer, ResourceKey<Level> dimension) {
+            return save(consumer, dimension.location());
+        }
+
+        public PlanetStructureTravel save(Consumer<PlanetStructureTravel> consumer, ResourceLocation name) {
+            PlanetStructureTravel dimension = this.build(name);
             consumer.accept(dimension);
             return dimension;
         }
 
         public JsonObject serializeToJson() {
             JsonObject json = new JsonObject();
-
-            json.addProperty("target_dimension", this.dimension.location().toString());
 
             json.add("spawn_chunk_coordinates", this.coordinates.serializeToJson());
 
@@ -141,12 +139,6 @@ public class PlanetStructureTravel {
         }
 
         public void serializeToNetwork(FriendlyByteBuf byteBuf) {
-            if (this.dimension == null) {
-                byteBuf.writeBoolean(false);
-            } else {
-                byteBuf.writeBoolean(true);
-                byteBuf.writeResourceLocation(this.dimension.getRegistryName());
-            }
 
             if (this.coordinates == null) {
                 byteBuf.writeBoolean(false);

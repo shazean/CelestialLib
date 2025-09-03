@@ -36,8 +36,8 @@ public class CLibPlanetStructureTravelManager extends SimpleJsonResourceReloadLi
 
             JsonObject json = element.getAsJsonObject();
 
-            String dimName = GsonHelper.getAsString(json, "target_dimension");
-            ResourceKey<Level> dimension = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(dimName));
+//            String dimName = GsonHelper.getAsString(json, "target_dimension");
+            ResourceKey<Level> dimension = ResourceKey.create(Registry.DIMENSION_REGISTRY, dimensionPath);
 
             if (json.has("spawn_chunk_coordinates")) {
                 JsonObject coordinates = GsonHelper.getAsJsonObject(json, "spawn_chunk_coordinates");

@@ -122,11 +122,11 @@ public class PlanetData {
         }
 
         public PlanetData save(Consumer<PlanetData> consumer, ResourceKey<Level> dimension) {
-            return save(consumer, dimension.location().getPath());
+            return save(consumer, dimension.location());
         }
 
-        public PlanetData save(Consumer<PlanetData> consumer, String name) {
-            PlanetData dimension = this.build(new ResourceLocation(name));
+        public PlanetData save(Consumer<PlanetData> consumer, ResourceLocation name) {
+            PlanetData dimension = this.build(name);
             consumer.accept(dimension);
             return dimension;
         }

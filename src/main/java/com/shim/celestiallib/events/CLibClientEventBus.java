@@ -3,7 +3,7 @@ package com.shim.celestiallib.events;
 import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.data.client.CLibGalaxyIconManager;
 import com.shim.celestiallib.data.client.CLibPlanetIconManager;
-import com.shim.celestiallib.data.client.ClibGalaxyImageManager;
+import com.shim.celestiallib.data.client.ClibGalaxyBackgroundManager;
 import com.shim.celestiallib.inventory.CLibMenus;
 import com.shim.celestiallib.inventory.screens.LightSpeedTravelScreen;
 import com.shim.celestiallib.inventory.screens.SingleGalaxyLightSpeedScreen;
@@ -37,6 +37,6 @@ public class CLibClientEventBus {
     public static void reloadClientResource(final RegisterClientReloadListenersEvent event) {
         event.registerReloadListener(new CLibGalaxyIconManager());
         event.registerReloadListener(new CLibPlanetIconManager());
-        event.registerReloadListener(new ClibGalaxyImageManager());
+        event.registerReloadListener(new ClibGalaxyBackgroundManager());
     }
 }
