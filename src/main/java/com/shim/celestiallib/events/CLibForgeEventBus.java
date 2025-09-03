@@ -2,6 +2,7 @@ package com.shim.celestiallib.events;
 
 import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.api.armor.ISpacesuit;
+import com.shim.celestiallib.api.world.tags.CLibTags;
 import com.shim.celestiallib.capabilities.*;
 import com.shim.celestiallib.api.capabilities.ISpaceFlight;
 import com.shim.celestiallib.config.CLibCommonConfig;
@@ -51,12 +52,11 @@ public class CLibForgeEventBus {
 
         if (player.level.isClientSide()) {
             if (CLibKeybinds.OPEN_LIGHT_SPEED_TRAVEL.isDown()) {
-                //FIXME
-//                if (Galaxy.isGalaxyDimension(player.level.dimension())) {
+                if (Galaxy.isGalaxyDimension(player.level.dimension())) {
                     CLibPacketHandler.INSTANCE.sendToServer(new LightSpeedMenuPacket());
-//                } else {
-//                    player.displayClientMessage(new TranslatableComponent("menu.celestiallib.light_speed_travel.invalid"), true);
-//                }
+                } else {
+                    player.displayClientMessage(new TranslatableComponent("menu.celestiallib.light_speed_travel.invalid"), true);
+                }
             }
         }
 
@@ -241,30 +241,34 @@ public class CLibForgeEventBus {
 
             if (entity instanceof ServerPlayer player) {
                 ItemStack itemStack = player.getItemBySlot(EquipmentSlot.FEET);
-                Planet planet = Planet.getPlanet(dimension);
+                ICelestial celestial = Planet.getPlanet(dimension);
+                if (celestial == null) celestial = Galaxy.getGalaxy(dimension);
 
-                    if (planet != null) {
-                        GravityEffect gravity = planet.getGravity();
-                        if (gravity != null) {
-                            if (itemStack.getItem() instanceof ISpacesuit suit && suit.shouldNegateGravity(gravity, itemStack)) {
-                                player.removeEffect(gravity);
-                            } else {
-                                player.addEffect(new MobEffectInstance(gravity, 120000, 0, false, false, true));
-                            }
+                if (celestial != null) {
+                    GravityEffect gravity = celestial.getGravity();
+                    if (gravity != null) {
+                        if (itemStack.getItem() instanceof ISpacesuit suit && suit.shouldNegateGravity(gravity, itemStack)) {
+                            player.removeEffect(gravity);
                         } else {
-                            for (GravityEffect effect : GravityEffect.GRAVITY_EFFECTS) {
-                                player.removeEffect(effect);
-                            }
+                            player.addEffect(new MobEffectInstance(gravity, 120000, 0, false, false, true));
+                        }
+                    } else {
+                        for (GravityEffect effect : GravityEffect.GRAVITY_EFFECTS) {
+                            player.removeEffect(effect);
                         }
                     }
+                }
 
             } else if (entity instanceof LivingEntity livingEntity) {
-                Planet planet = Planet.getPlanet(dimension);
+                ICelestial celestial = Planet.getPlanet(dimension);
+                if (celestial == null) celestial = Galaxy.getGalaxy(dimension);
 
-                if (planet != null) {
-                    GravityEffect gravity = planet.getGravity();
+                if (celestial != null) {
+                    GravityEffect gravity = celestial.getGravity();
                     if (gravity != null) {
-                        livingEntity.addEffect(new MobEffectInstance(gravity, 120000, 0, false, false, true));
+                        //check if entity is not exempt from gravity by way of tags
+                        if ((gravity.isLowGravity() && !livingEntity.getType().is((CLibTags.EntityTypes.LOW_GRAVITY_EXEMPT))) || (gravity.isHighGravity() && !livingEntity.getType().is((CLibTags.EntityTypes.HIGH_GRAVITY_EXEMPT))))
+                            livingEntity.addEffect(new MobEffectInstance(gravity, 120000, 0, false, false, true));
                     } else {
                         for (GravityEffect effect : GravityEffect.GRAVITY_EFFECTS) {
                             livingEntity.removeEffect(effect);
@@ -291,7 +295,7 @@ public class CLibForgeEventBus {
     @SubscribeEvent
     public static void onAdvancement(AdvancementEvent event) {
         Player player = event.getPlayer();
-            IUnlock travelCap = CelestialLib.getCapability(player, CLibCapabilities.UNLOCK_CAPABILITY);
+        IUnlock travelCap = CelestialLib.getCapability(player, CLibCapabilities.UNLOCK_CAPABILITY);
 
         if (travelCap != null) {
 
@@ -301,7 +305,7 @@ public class CLibForgeEventBus {
 
                 for (ICelestial celestial : lockedCelestials) {
                     travelCap.unlockCelestial(celestial);
-                    if (player instanceof  ServerPlayer serverPlayer)
+                    if (player instanceof ServerPlayer serverPlayer)
                         CLibPacketHandler.INSTANCE.sendTo(new ServerUnlockedCelestialPacket(player.getId(), celestial.getDimension(), false, celestial.isGalaxy()), serverPlayer.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
 
                 }
@@ -313,20 +317,20 @@ public class CLibForgeEventBus {
 
                 for (ICelestial celestial : lockedCelestials) {
                     CelestialLib.LOGGER.debug("celestial: " + celestial + " 3/5");
-                        travelCap.unlockCelestialLightSpeed(celestial);
+                    travelCap.unlockCelestialLightSpeed(celestial);
 
-                        CelestialLib.LOGGER.debug("on client side: " + event.getPlayer().level.isClientSide());
-                        if (player instanceof ServerPlayer serverPlayer) {
-                            CelestialLib.LOGGER.debug("is server player, sending packet to client…");
+                    CelestialLib.LOGGER.debug("on client side: " + event.getPlayer().level.isClientSide());
+                    if (player instanceof ServerPlayer serverPlayer) {
+                        CelestialLib.LOGGER.debug("is server player, sending packet to client…");
 //                            CLibPacketHandler.INSTANCE.sendToServer(new ServerUnlockedCelestialPacket(player.getId(), celestial.getDimension(), true, celestial.isGalaxy()));
 
-                            final PacketDistributor.PacketTarget targetPlayer = PacketDistributor.PLAYER.with(() -> serverPlayer);
-                            CLibPacketHandler.INSTANCE.send(targetPlayer, new ServerUnlockedCelestialPacket(player.getId(), celestial.getDimension(), true, celestial.isGalaxy()));
+                        final PacketDistributor.PacketTarget targetPlayer = PacketDistributor.PLAYER.with(() -> serverPlayer);
+                        CLibPacketHandler.INSTANCE.send(targetPlayer, new ServerUnlockedCelestialPacket(player.getId(), celestial.getDimension(), true, celestial.isGalaxy()));
 
 //                            CLibPacketHandler.INSTANCE.sendTo(new ServerUnlockedCelestialPacket(player.getId(), celestial.getDimension(), true, celestial.isGalaxy()),
 //                                    serverPlayer.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
 
-                        }
+                    }
                 }
             }
 
@@ -386,10 +390,11 @@ public class CLibForgeEventBus {
 
         if (entity instanceof ServerPlayer player) {
             ItemStack itemStack = event.getTo();
-            Planet planet = Planet.getPlanet(player.level.dimension());
+            ICelestial celestial = Planet.getPlanet(player.level.dimension());
+            if (celestial == null) celestial = Galaxy.getGalaxy(player.level.dimension());
 
-            if (planet != null) {
-                MobEffect gravity = planet.getGravity();
+            if (celestial != null) {
+                MobEffect gravity = celestial.getGravity();
                 if (gravity != null) {
                     if (itemStack.getItem() instanceof ISpacesuit suit && suit.shouldNegateGravity(gravity, itemStack)) {
                         player.removeEffect(gravity);

@@ -38,8 +38,6 @@ public class CLibGalaxyManager extends SimpleJsonResourceReloadListener {
 //            ResourceKey<Level> dimension = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(dimName));
             Galaxy galaxy = CelestialUtil.getGalaxyFromResourceLocation(dimensionPath);
 
-            CelestialLib.LOGGER.debug("dimensionPath: " + dimensionPath + ", galaxy: " + galaxy.getDimension());
-
             int scale = GsonHelper.getAsInt(json, "scale_ratio", 1);
 
             ItemStack cost = null;
@@ -83,12 +81,12 @@ public class CLibGalaxyManager extends SimpleJsonResourceReloadListener {
 
 
             if (cost != null)
-                galaxy.lightSpeedCost(cost);
+                galaxy.setLightSpeedCost(cost);
 
             galaxy.setGalaxyRatio(scale);
 
             if (lightSpeedLocked) {
-                galaxy.lightSpeedLockedAndMaybeHidden(lightSpeedHidden);
+                galaxy.setLightSpeedLockedAndMaybeHidden(lightSpeedHidden);
                 CelestialUtil.addLockedLightSpeedCelestial(lightSpeedUnlockable, galaxy);
 
             }

@@ -3,7 +3,7 @@ package com.shim.celestiallib;
 import com.mojang.logging.LogUtils;
 import com.shim.celestiallib.capabilities.CLibCapabilities;
 import com.shim.celestiallib.data.*;
-import com.shim.celestiallib.effects.CelestialLibEffects;
+import com.shim.celestiallib.api.effects.CLibEffects;
 import com.shim.celestiallib.events.CLibCommonEventSetup;
 import com.shim.celestiallib.inventory.CLibMenus;
 import com.shim.celestiallib.util.ClientProxy;
@@ -35,7 +35,7 @@ public class CelestialLib {
 
         modEventBus.addListener(CLibCommonEventSetup::commonSetup);
 
-        CelestialLibEffects.MOB_EFFECTS.register(modEventBus);
+        CLibEffects.MOB_EFFECTS.register(modEventBus);
         CLibStructures.DEFERRED_REGISTRY_STRUCTURE.register(modEventBus);
         CLibMenus.MENUS.register(modEventBus);
 

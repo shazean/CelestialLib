@@ -1,6 +1,7 @@
 package com.shim.celestiallib.world.structures;
 
 import com.shim.celestiallib.CelestialLib;
+import com.shim.celestiallib.api.world.structure.PlanetStructure;
 import net.minecraft.world.level.levelgen.feature.StructureFeature;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;

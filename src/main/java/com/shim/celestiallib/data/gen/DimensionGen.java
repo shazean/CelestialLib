@@ -76,8 +76,15 @@ public class DimensionGen {
             this.fixedBiome = fixedbiome;
         }
 
-        public DimensionGen.Builder useForgeSeed(boolean useForgeSeed) {
-            this.useForgeSeed = useForgeSeed;
+        public DimensionGen.Builder typeSettingsAndPreset(ResourceKey<Level> dimension) {
+            this.type = dimension.location();
+            this.settings = dimension.location();
+            this.preset = dimension.location();
+            return this;
+        }
+
+        public DimensionGen.Builder useForgeSeed() {
+            this.useForgeSeed = true;
             return this;
         }
 

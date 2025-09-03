@@ -68,7 +68,7 @@ public class CelestialUtil {
     }
 
     public static BlockPos getDimensionToSpaceCoordinates(ResourceKey<Level> dimension, ChunkPos pos) {
-        Vec3 coord = getDimensionLocation(dimension).getOutputCoordinates(pos.x, pos.z); //new Vec3(CE_DIMENSION_LOCATION.get(dimension).x() * CelestialUtil.getSpaceRatio(), 0, CE_DIMENSION_LOCATION.get(dimension).z() * CelestialUtil.getSpaceRatio()); //getDimensionLocation(dimension).getOutputCoordinates(pos.x, pos.z); //FIXME
+        Vec3 coord = getDimensionLocation(dimension).getOutputCoordinates(pos.x, pos.z);
         if (coord == null) coord = defaultDimensionLocation.getOutputCoordinates(pos.x, pos.z);
         return new BlockPos(coord.x * 16, 145.0, coord.z * 16);
     }

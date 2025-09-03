@@ -333,8 +333,6 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
 
         RenderSystem.setShaderTexture(0, widget.getTexture());
 
-        //TODO somehow display a planet is locked/unavailable?
-
         Vec3 planetLoc = CelestialUtil.getPlanetLocation(planet.getDimension());
         if (planetLoc == null) {
             return;

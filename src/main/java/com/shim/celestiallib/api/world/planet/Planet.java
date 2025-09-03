@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public class Planet extends ForgeRegistryEntry<Planet> implements ICelestial {
-    private GravityEffect gravity = null;
+    private Supplier<GravityEffect> gravity = null;
     private final ResourceKey<Level> dimension;
     private final Galaxy galaxy;
     boolean isLocked = false;
@@ -37,80 +37,38 @@ public class Planet extends ForgeRegistryEntry<Planet> implements ICelestial {
         this.dimension = dimension;
         this.galaxy = galaxy;
 
+        //FIXME add exception for overworld…?
         if (DIMENSIONS.containsKey(dimension)) {
             throw new IllegalStateException("dimension: " + dimension.toString() + " already has an associated planet");
         }
         DIMENSIONS.put(dimension, this);
     }
 
-    //START PLANET BUILDER METHODS
-    //The following methods can be called during registry of your planet to customize it.
-    /**
-     * Set a gravity value. If unset, planet will have standard vanilla gravity.
-     * See {@link com.shim.celestiallib.effects.CelestialLibEffects} or create your own.
-     */
-    public Planet gravity(GravityEffect gravity) {
+    public void setGravity(Supplier<GravityEffect> gravity) {
         this.gravity = gravity;
-        return this;
     }
 
-    /**
-     * Set a planet to be locked and not able to be traveled to via
-     * {@link com.shim.celestiallib.api.capabilities.ISpaceFlight} until unlocked.
-     * Light speed travel is also unavailable while this is locked.
-     * Adding the file for unlocking this also automatically sets it as locked,
-     * so this method can be skipped during registry.
-     */
-    public Planet locked() {
+    public void setLocked() {
         this.isLocked = true;
-        return this;
     }
 
-    /**
-     * Set a planet to be locked and possibly hidden from light speed travel.
-     * If it is locked, it can not be visited by light speed travel until it is unlocked.
-     * If it is hidden, it is not even visible in the light speed travel until it is unlocked.
-     * This only affects light speed travel and not other means of visiting a planet/dimension.
-     * Adding the file for unlocking this also automatically sets it as locked,
-     * so this method can be skipped during registry.
-     */
-    public Planet lightSpeedLockedAndMaybeHidden(boolean isHidden) {
+    public void setLightSpeedLockedAndMaybeHidden(boolean isHidden) {
         this.isLightSpeedLocked = true;
         this.isHidden = isHidden;
-        return this;
     }
 
-    /**
-     * This disables the cooldown feature for the planet IF cooldowns are enabled galaxy-wide.
-     * Otherwise, whether a cooldown is enabled is determined by the galaxy.
-     */
     public void disableCooldowns() {
         this.cooldownsEnabled = false;
     }
 
-    /**
-     * Set the light speed cost for traveling to this planet
-     * @param cost base cost of light speed travel
-     * @param costMultiplier number of chunks it takes for the base cost to be doubled.
-     *                       This is later clamped to be within values 0 and 2048. The smaller this number is,
-     *                       the greater the cost is per distance.  Set to 0 to keep light speed
-     *                       travel at always exactly the base cost. Hint: pass in a config value here!
-     */
-    public Planet lightSpeedCost(ItemStack cost, Supplier<Integer> costMultiplier) {
+    public void setLightSpeedCost(ItemStack cost, Supplier<Integer> costMultiplier) {
         this.lightSpeedCost = cost;
         this.costMultiplier = costMultiplier;
-        return this;
     }
 
-    /**
-     * Calls {@link Planet#lightSpeedCost(ItemStack, Supplier)} but with a value of 0,
-     * thereby disabling light speed travel costs increasing with distance
-     */
-    public Planet lightSpeedCost(ItemStack itemStack) {
-        return lightSpeedCost(itemStack, () -> 0);
+    public void setLightSpeedCost(ItemStack itemStack) {
+        setLightSpeedCost(itemStack, () -> 0);
     }
-    //END PLANET BUILDER METHODS
-
 
     public static Planet getPlanet(ResourceKey<Level> dimension) {
         return DIMENSIONS.getOrDefault(dimension, null);
@@ -123,7 +81,7 @@ public class Planet extends ForgeRegistryEntry<Planet> implements ICelestial {
     @Nullable
     public GravityEffect getGravity() {
         if (gravity != null)
-            return this.gravity;
+            return this.gravity.get();
         else return null;
     }
 

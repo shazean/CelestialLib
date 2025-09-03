@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.shim.celestiallib.api.world.galaxy.Galaxy;
+import com.shim.celestiallib.util.CelestialUtil;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -32,12 +33,11 @@ public class ClibGalaxyImageManager extends SimpleJsonResourceReloadListener {
 
             JsonObject json = element.getAsJsonObject();
 
-            ResourceLocation dimension = new ResourceLocation(GsonHelper.getAsString(json, "galaxy"));
             String[] resource = GsonHelper.getAsString(json, "texture").split(":");
             String namespace = resource[0];
             String path = resource[1];
 
-            ResourceLocation texture = new ResourceLocation(namespace, "textures/" + path + ".png");
+            ResourceLocation texture = new ResourceLocation(namespace, "textures/" + path);
 
             int size = GsonHelper.getAsInt(json, "size");
 
@@ -45,7 +45,7 @@ public class ClibGalaxyImageManager extends SimpleJsonResourceReloadListener {
                 throw new IllegalStateException(String.format("Galaxy background image size is out of bounds. Must be within sizes %d and %d, inclusive", MIN, MAX));
             }
 
-            Galaxy galaxy = Galaxy.getGalaxy(ResourceKey.create(Registry.DIMENSION_REGISTRY, dimension));
+            Galaxy galaxy = CelestialUtil.getGalaxyFromResourceLocation(dimensionPath);
 
             galaxy.setBackgroundImage(texture, size);
 

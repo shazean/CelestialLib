@@ -78,27 +78,18 @@ public class PlanetData {
             return this;
         }
 
-        public PlanetData.Builder locked(boolean locked) {
-            this.locked = locked;
-            return this;
-        }
-
         public PlanetData.Builder unlockBy(ResourceLocation unlockBy) {
+            this.locked = true;
             this.unlockable = unlockBy;
             return this;
         }
 
-        public PlanetData.Builder lightSpeedLocked(boolean locked, boolean hidden) {
+        public PlanetData.Builder lightSpeedLocked(boolean locked, boolean hidden, ResourceLocation unlockAdvancement) {
             this.lightSpeedLocked = locked;
             this.lightSpeedHidden = hidden;
+            this.lightSpeedUnlockable = unlockAdvancement;
             return this;
         }
-
-        public PlanetData.Builder unlockLightSpeedBy(ResourceLocation unlockBy) {
-            this.lightSpeedUnlockable = unlockBy;
-            return this;
-        }
-
 
         public PlanetData.Builder lightSpeedCost(ItemStack cost, int multiplier) {
             this.lightSpeedCost = cost;

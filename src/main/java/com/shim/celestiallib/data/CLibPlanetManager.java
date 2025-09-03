@@ -5,16 +5,12 @@ import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.api.effects.GravityEffect;
 import com.shim.celestiallib.api.world.planet.Planet;
 import com.shim.celestiallib.util.CelestialUtil;
-import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Map;
@@ -39,10 +35,12 @@ public class CLibPlanetManager extends SimpleJsonResourceReloadListener {
             Planet planet = CelestialUtil.getPlanetFromResourceLocation(dimensionPath);
 
             ResourceLocation gravity = null;
-            GravityEffect gravityEffect = null;
+            GravityEffect gravityEffect;
             if (json.has("gravity")) {
                 gravity = ResourceLocation.parse(GsonHelper.getAsString(json, "gravity"));
                 gravityEffect = (GravityEffect) ForgeRegistries.MOB_EFFECTS.getValue(gravity);
+            } else {
+                gravityEffect = null;
             }
 
             ItemStack cost = null;
@@ -101,18 +99,18 @@ public class CLibPlanetManager extends SimpleJsonResourceReloadListener {
             }
 
             if (cost != null)
-              planet.lightSpeedCost(cost, () -> multiplier);
+              planet.setLightSpeedCost(cost, () -> multiplier);
 
             if (locked) {
-                planet.locked();
+                planet.setLocked();
                 CelestialUtil.addLockedCelestial(unlockable, planet);
             }
 
             if (gravity != null && gravityEffect != null)
-                planet.gravity(gravityEffect);
+                planet.setGravity(() -> gravityEffect);
 
             if (lightSpeedLocked) {
-                planet.lightSpeedLockedAndMaybeHidden(lightSpeedHidden);
+                planet.setLightSpeedLockedAndMaybeHidden(lightSpeedHidden);
                 CelestialUtil.addLockedLightSpeedCelestial(lightSpeedUnlockable, planet);
 
             }

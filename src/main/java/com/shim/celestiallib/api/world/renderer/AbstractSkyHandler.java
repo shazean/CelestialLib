@@ -23,6 +23,10 @@ public abstract class AbstractSkyHandler implements ISkyRenderHandler {
         renderStars(poseStack, level, partialTick, true);
     }
 
+    protected void renderVanillaSun(PoseStack poseStack, ClientLevel level, float partialTick, float xRotation, float zRotation, float size) {
+        renderSun(poseStack, level, partialTick, xRotation, zRotation, VANILLA_SUN_LOCATION, size);
+    }
+
     protected void renderSun(PoseStack poseStack, ClientLevel level, float partialTick, float xRotation, float zRotation, ResourceLocation sun, float size) {
         poseStack.pushPose();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);

@@ -4,7 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.shim.celestiallib.api.world.galaxy.Galaxy;
 import com.shim.celestiallib.api.world.planet.Planet;
+import com.shim.celestiallib.util.CelestialUtil;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -29,15 +31,18 @@ public class CLibPlanetIconManager extends SimpleJsonResourceReloadListener {
 
             JsonObject json = element.getAsJsonObject();
 
-            ResourceLocation dimension = new ResourceLocation(GsonHelper.getAsString(json, "planet"));
-            ResourceLocation texture = new ResourceLocation(GsonHelper.getAsString(json, "texture"));
+            String[] resource = GsonHelper.getAsString(json, "texture").split(":");
+            String namespace = resource[0];
+            String path = resource[1];
+
+            ResourceLocation texture = new ResourceLocation(namespace, "textures/" + path);
             int size = GsonHelper.getAsInt(json, "size");
 
             if (size < 4 || size > 256) {
                 throw new IllegalStateException("Planet icon size is out of bounds. Must be within sizes 4 and 256, inclusive");
             }
 
-            Planet planet = Planet.getPlanet(ResourceKey.create(Registry.DIMENSION_REGISTRY, dimension));
+            Planet planet = CelestialUtil.getPlanetFromResourceLocation(dimensionPath);
 
             planet.setTexture(texture, size);
 

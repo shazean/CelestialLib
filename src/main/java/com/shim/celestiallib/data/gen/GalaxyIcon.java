@@ -10,17 +10,15 @@ import java.util.function.Function;
 
 public class GalaxyIcon {
     private final ResourceLocation id;
-    private final ResourceLocation galaxy;
     private final ResourceLocation texture;
 
-    public GalaxyIcon(ResourceLocation id, ResourceLocation galaxy, ResourceLocation texture) {
+    public GalaxyIcon(ResourceLocation id, ResourceLocation texture) {
         this.id = id;
-        this.galaxy = galaxy;
         this.texture = texture;
     }
 
     public GalaxyIcon.Builder deconstruct() {
-        return new GalaxyIcon.Builder(this.galaxy, this.texture);
+        return new GalaxyIcon.Builder(this.texture);
     }
 
     public static Builder builder() {
@@ -32,20 +30,13 @@ public class GalaxyIcon {
     }
 
     public static class Builder {
-        ResourceLocation galaxy;
         ResourceLocation texture;
 
-        public Builder(ResourceLocation galaxy, ResourceLocation texture) {
-            this.galaxy = galaxy;
+        public Builder(ResourceLocation texture) {
             this.texture = texture;
         }
 
         private Builder() {
-        }
-
-        public GalaxyIcon.Builder galaxy(Galaxy galaxy) {
-            this.galaxy = galaxy.getDimension().location();
-            return this;
         }
 
         public GalaxyIcon.Builder texture(ResourceLocation texture) {
@@ -53,9 +44,8 @@ public class GalaxyIcon {
             return this;
         }
 
-
         public boolean canBuild(Function<ResourceLocation, GalaxyIcon> p_138393_) {
-            return galaxy != null && texture != null;
+            return texture != null;
         }
 
         public GalaxyIcon build(ResourceLocation resourceLocation) {
@@ -65,7 +55,7 @@ public class GalaxyIcon {
             })) {
                 throw new IllegalStateException("Tried to build incomplete galaxy background!");
             } else {
-                return new GalaxyIcon(resourceLocation, this.galaxy, this.texture);
+                return new GalaxyIcon(resourceLocation, this.texture);
             }
         }
 
@@ -78,20 +68,12 @@ public class GalaxyIcon {
         public JsonObject serializeToJson() {
             JsonObject json = new JsonObject();
 
-            json.addProperty("galaxy", this.galaxy.toString());
             json.addProperty("texture", this.texture.toString());
 
             return json;
         }
 
         public void serializeToNetwork(FriendlyByteBuf byteBuf) {
-            if (this.galaxy == null) {
-                byteBuf.writeBoolean(false);
-            } else {
-                byteBuf.writeBoolean(true);
-                byteBuf.writeResourceLocation(this.galaxy);
-            }
-
             if (this.texture == null) {
                 byteBuf.writeBoolean(false);
             } else {

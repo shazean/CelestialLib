@@ -190,8 +190,6 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
 
         RenderSystem.setShaderTexture(0, widget.getTexture());
 
-        //TODO somehow display a planet is locked/unavailable?
-
         Vec3 planetLoc = CelestialUtil.getPlanetLocation(planet.getDimension());
         int scale = planet.getGalaxy().getGuiScale();
 

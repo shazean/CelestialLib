@@ -10,19 +10,17 @@ import java.util.function.Function;
 
 public class PlanetIcon {
     private final ResourceLocation id;
-    private final ResourceLocation planet;
     private final ResourceLocation texture;
     private final int size;
 
-    public PlanetIcon(ResourceLocation id, ResourceLocation planet, ResourceLocation texture, int size) {
+    public PlanetIcon(ResourceLocation id, ResourceLocation texture, int size) {
         this.id = id;
-        this.planet = planet;
         this.texture = texture;
         this.size = size;
     }
 
     public PlanetIcon.Builder deconstruct() {
-        return new PlanetIcon.Builder(this.planet, this.texture, this.size);
+        return new PlanetIcon.Builder(this.texture, this.size);
     }
 
     public static Builder builder() {
@@ -34,12 +32,11 @@ public class PlanetIcon {
     }
 
     public static class Builder {
-        ResourceLocation planet;
+
         ResourceLocation texture;
         int size;
 
-        public Builder(ResourceLocation planet, ResourceLocation texture, int size) {
-            this.planet = planet;
+        public Builder(ResourceLocation texture, int size) {
             this.texture = texture;
             this.size = size;
         }
@@ -47,23 +44,18 @@ public class PlanetIcon {
         private Builder() {
         }
 
-        public PlanetIcon.Builder planet(Planet planet) {
-            this.planet = planet.getDimension().location();
-            return this;
-        }
-
         public PlanetIcon.Builder texture(ResourceLocation texture) {
             this.texture = texture;
             return this;
         }
 
-        public PlanetIcon.Builder block(int size) {
+        public PlanetIcon.Builder size(int size) {
             this.size = size;
             return this;
         }
 
         public boolean canBuild(Function<ResourceLocation, PlanetIcon> p_138393_) {
-            return planet != null && texture != null;
+            return texture != null;
         }
 
         public PlanetIcon build(ResourceLocation resourceLocation) {
@@ -73,7 +65,7 @@ public class PlanetIcon {
             })) {
                 throw new IllegalStateException("Tried to build incomplete planet icon!");
             } else {
-                return new PlanetIcon(resourceLocation, this.planet, this.texture, this.size);
+                return new PlanetIcon(resourceLocation, this.texture, this.size);
             }
         }
 
@@ -86,7 +78,6 @@ public class PlanetIcon {
         public JsonObject serializeToJson() {
             JsonObject json = new JsonObject();
 
-            json.addProperty("planet", this.planet.toString());
             json.addProperty("texture", this.texture.toString());
 
             json.addProperty("size", this.size);
@@ -95,12 +86,6 @@ public class PlanetIcon {
         }
 
         public void serializeToNetwork(FriendlyByteBuf byteBuf) {
-            if (this.planet == null) {
-                byteBuf.writeBoolean(false);
-            } else {
-                byteBuf.writeBoolean(true);
-                byteBuf.writeResourceLocation(this.planet);
-            }
 
             if (this.texture == null) {
                 byteBuf.writeBoolean(false);

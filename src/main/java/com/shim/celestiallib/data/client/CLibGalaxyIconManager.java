@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.shim.celestiallib.api.world.galaxy.Galaxy;
+import com.shim.celestiallib.util.CelestialUtil;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -30,10 +31,13 @@ public class CLibGalaxyIconManager extends SimpleJsonResourceReloadListener {
 
             JsonObject json = element.getAsJsonObject();
 
-            ResourceLocation dimension = new ResourceLocation(GsonHelper.getAsString(json, "galaxy"));
-            ResourceLocation texture = new ResourceLocation(GsonHelper.getAsString(json, "texture"));
+            String[] resource = GsonHelper.getAsString(json, "texture").split(":");
+            String namespace = resource[0];
+            String path = resource[1];
 
-            Galaxy galaxy = Galaxy.getGalaxy(ResourceKey.create(Registry.DIMENSION_REGISTRY, dimension));
+            ResourceLocation texture = new ResourceLocation(namespace, "textures/" + path);
+
+            Galaxy galaxy = CelestialUtil.getGalaxyFromResourceLocation(dimensionPath);
 
             galaxy.setIcon(texture);
 

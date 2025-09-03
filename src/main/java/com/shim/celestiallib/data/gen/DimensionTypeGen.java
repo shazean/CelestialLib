@@ -154,8 +154,8 @@ public class DimensionTypeGen {
             return this;
         }
 
-        public DimensionTypeGen.Builder ultrawarm(boolean isUltrwarm) {
-            this.ultrawarm = isUltrwarm;
+        public DimensionTypeGen.Builder ultrawarm(boolean isUltrawarm) {
+            this.ultrawarm = isUltrawarm;
             return this;
         }
 

@@ -1,7 +1,7 @@
 package com.shim.celestiallib.data.gen;
 
 import com.shim.celestiallib.CelestialLib;
-import com.shim.celestiallib.effects.CelestialLibEffects;
+import com.shim.celestiallib.api.effects.CLibEffects;
 import com.shim.celestiallib.world.biome.PresetBiomeKeys;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.resources.ResourceKey;
@@ -18,9 +18,9 @@ public class CLibLangProvider extends LanguageProvider {
     protected void addTranslations() {
 
         //---- EFFECTS -------------------------------------------------------------------------------
-        add(CelestialLibEffects.LOW_GRAVITY.get(), "Low Gravity");
-        add(CelestialLibEffects.EXTRA_LOW_GRAVITY.get(), "Extra Low Gravity");
-        add(CelestialLibEffects.HIGH_GRAVITY.get(), "High Gravity");
+        add(CLibEffects.LOW_GRAVITY.get(), "Low Gravity");
+        add(CLibEffects.EXTRA_LOW_GRAVITY.get(), "Extra Low Gravity");
+        add(CLibEffects.HIGH_GRAVITY.get(), "High Gravity");
 
         add("celestial.teleport.message_1", "Teleporting to ");
         add("celestial.teleport.message_2", " in… ");

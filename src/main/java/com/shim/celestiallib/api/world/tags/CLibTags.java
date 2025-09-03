@@ -35,6 +35,11 @@ public class CLibTags {
     public static class Biomes {
         public static final TagKey<Biome> NO_SNOW_BIOMES = create("no_snow");
 
+        public static final TagKey<Biome> GALAXIES = create("galaxies");
+        public static final TagKey<Biome> PLANETS = create("no_snow");
+        public static final TagKey<Biome> MOONS = create("no_snow");
+
+
         public static final TagKey<Biome> DUST_STORM_BIOMES = create("dust_storms");
         public static final TagKey<Biome> METEOR_SHOWER_BIOMES = create("meteor_showers");
 

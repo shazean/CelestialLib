@@ -1,6 +1,9 @@
 package com.shim.celestiallib.api.world.galaxy;
 
 import com.shim.celestiallib.CelestialLib;
+import com.shim.celestiallib.api.effects.CLibEffects;
+import com.shim.celestiallib.api.effects.GravityEffect;
+import com.shim.celestiallib.api.world.planet.Planet;
 import com.shim.celestiallib.util.CelestialUtil;
 import com.shim.celestiallib.world.celestials.ICelestial;
 import net.minecraft.advancements.Advancement;
@@ -11,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -25,6 +29,7 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> implements ICelestial {
     private ItemStack lightSpeedCost;
     private int guiScale = 2;
     private Supplier<Integer> yHeight;
+    private Supplier<GravityEffect> gravity = () -> (GravityEffect) CLibEffects.LOW_GRAVITY.get();
 
     public static final Map<ResourceKey<Level>, Galaxy> DIMENSIONS = new HashMap<>();
     private boolean cooldownsEnabled = false;
@@ -35,6 +40,7 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> implements ICelestial {
     public Galaxy(ResourceKey<Level> galaxyDimension) {
         this.dimension = galaxyDimension;
 
+        //FIXME add exception for overworld…?
         if (DIMENSIONS.containsKey(dimension)) {
             throw new IllegalStateException("dimension: " + dimension.toString() + " already has an associated galaxy: " + DIMENSIONS.get(dimension).toString());
         }
@@ -43,29 +49,6 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> implements ICelestial {
 
     //START GALAXY BUILDER METHODS
     //The following methods can be called during registry of your galaxy to customize it.
-    /**
-     * Set a galaxy to be locked and possibly hidden.
-     * If it is locked, it can not be visited by light speed travel until it is unlocked.
-     * If it is hidden, it is not even visible in the light speed travel until it is unlocked.
-     * Note: Setting these values do nothing if there is only a single galaxy
-     */
-    public Galaxy lightSpeedLockedAndMaybeHidden(boolean isHidden) {
-        //TODO accept a criteria for unlocking
-        this.isLightSpeedLocked = true;
-        this.isHidden = isHidden;
-        return this;
-    }
-
-    /**
-     * Set a cost for light speed travel to this galaxy from ANOTHER galaxy.
-     * Unlike planet light speed travel, this is a static cost that does not change.
-     * Note: Setting this does nothing if there is only a single galaxy
-     */
-    public Galaxy lightSpeedCost(ItemStack itemStack) {
-        this.lightSpeedCost = itemStack;
-        return this;
-    }
-
     /**
      * Enable cooldowns for light speed travel for all planets within this galaxy.
      * Cooldowns can then be disabled for each planet individually if desired.
@@ -104,12 +87,29 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> implements ICelestial {
         return this;
     }
 
-    //does nothing, because there's no way to travel to galaxies except through light speed travel
-    public Galaxy locked() {
+    /**
+     * Set a gravity value. If unset, galaxy will have {@link CLibEffects#LOW_GRAVITY LOW_GRAVITY}.
+     * See {@link CLibEffects} or create your own.
+     * Note that {@link com.shim.celestiallib.config.CLibCommonConfig#GRAVITY_EFFECTS GRAVITY_EFFECTS config} will need to be set to true
+     */
+    public Galaxy gravity(Supplier<GravityEffect> gravity) {
+        this.gravity = gravity;
         return this;
     }
 
     //END GALAXY BUILDER METHODS
+
+    public void setLocked() {}
+
+    public void setLightSpeedLockedAndMaybeHidden(boolean isHidden) {
+        this.isLightSpeedLocked = true;
+        this.isHidden = isHidden;
+    }
+
+    public void setLightSpeedCost(ItemStack itemStack) {
+        this.lightSpeedCost = itemStack;
+    }
+
 
     public static Galaxy getGalaxy(ResourceKey<Level> dimension) {
         return DIMENSIONS.getOrDefault(dimension, null);
@@ -224,5 +224,12 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> implements ICelestial {
     @Override
     public boolean isGalaxy() {
         return true;
+    }
+
+    @Nullable
+    public GravityEffect getGravity() {
+        if (gravity != null)
+            return this.gravity.get();
+        else return null;
     }
 }
