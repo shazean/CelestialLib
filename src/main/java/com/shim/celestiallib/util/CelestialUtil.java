@@ -61,6 +61,7 @@ public class CelestialUtil {
 
     public static void setDimensionLocation(ResourceKey<Level> dimension, AbstractCelestialTeleportData data) {
         DIMENSION_LOCATION.put(dimension, data);
+        CelestialLib.LOGGER.debug("dimension: " + dimension + ", data: " + data + ", map: " + DIMENSION_LOCATION.get(dimension));
     }
 
     public static void clearDimensionLocations() {
@@ -68,7 +69,13 @@ public class CelestialUtil {
     }
 
     public static BlockPos getDimensionToSpaceCoordinates(ResourceKey<Level> dimension, ChunkPos pos) {
-        Vec3 coord = getDimensionLocation(dimension).getOutputCoordinates(pos.x, pos.z);
+        AbstractCelestialTeleportData teleportData = getDimensionLocation(dimension);
+        CelestialLib.LOGGER.debug("dimension: " + dimension + ", get: " + getDimensionLocation(dimension) + ", map: " + DIMENSION_LOCATION.values());
+        if (teleportData == null) {
+            throw new IllegalStateException("Missing teleport coordinates for dimension: " + dimension);
+        }
+
+        Vec3 coord = teleportData.getOutputCoordinates(pos.x, pos.z);
         if (coord == null) coord = defaultDimensionLocation.getOutputCoordinates(pos.x, pos.z);
         return new BlockPos(coord.x * 16, 145.0, coord.z * 16);
     }

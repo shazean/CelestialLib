@@ -35,11 +35,11 @@ public class CLibGalaxyIconManager extends SimpleJsonResourceReloadListener {
             String namespace = resource[0];
             String path = resource[1];
 
-            ResourceLocation texture = new ResourceLocation(namespace, "textures/" + path);
+            ResourceLocation texture = new ResourceLocation(namespace, "textures/" + path + ".png");
 
             Galaxy galaxy = CelestialUtil.getGalaxyFromResourceLocation(dimensionPath);
-
-            galaxy.setIcon(texture);
+            if (galaxy != null)
+                galaxy.setIcon(texture);
 
         });
     }

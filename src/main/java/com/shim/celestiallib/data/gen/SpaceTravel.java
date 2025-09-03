@@ -2,6 +2,7 @@ package com.shim.celestiallib.data.gen;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.shim.celestiallib.api.world.galaxy.Galaxy;
 import com.shim.celestiallib.api.world.planet.Planet;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
@@ -27,31 +28,34 @@ import java.util.Set;
 
 public class SpaceTravel {
     private final ResourceLocation id;
+    private final Galaxy galaxy;
+
     @Nullable
     private final SpaceCoordinates coordinates;
     @Nullable
     private final double coordinateScale;
 
-    public SpaceTravel(ResourceLocation id, SpaceCoordinates coordinates) {
-        this(id, coordinates, -1);
+    public SpaceTravel(ResourceLocation id, Galaxy galaxy, SpaceCoordinates coordinates) {
+        this(id, galaxy, coordinates, -1);
     }
 
-    public SpaceTravel(ResourceLocation id, double coordinateScale) {
-        this(id, null, coordinateScale);
+    public SpaceTravel(ResourceLocation id, Galaxy galaxy, double coordinateScale) {
+        this(id, galaxy, null, coordinateScale);
     }
 
-    public SpaceTravel(ResourceLocation id, SpaceCoordinates coordinates, double coordinateScale) {
+    public SpaceTravel(ResourceLocation id, Galaxy galaxy, SpaceCoordinates coordinates, double coordinateScale) {
         this.id = id;
+        this.galaxy = galaxy;
         this.coordinates = coordinates;
         this.coordinateScale = coordinateScale;
     }
 
-    public static Builder add() {
+    public static Builder builder() {
         return new Builder();
     }
 
     public Builder deconstruct() {
-        return new Builder(this.coordinates, this.coordinateScale);
+        return new Builder(this.galaxy, this.coordinates, this.coordinateScale);
     }
 
     public ResourceLocation getId() {
@@ -76,19 +80,21 @@ public class SpaceTravel {
     }
 
     public static class Builder {
+        Galaxy galaxy;
         @Nullable
         SpaceCoordinates coordinates;
         double coordinateScale;
 
-        public Builder(@Nullable SpaceCoordinates coordinates) {
-            this(coordinates, -1);
+        public Builder(Galaxy galaxy, @Nullable SpaceCoordinates coordinates) {
+            this(galaxy, coordinates, -1);
         }
 
-        public Builder(double coordinateScale) {
-            this(null, coordinateScale);
+        public Builder(Galaxy galaxy, double coordinateScale) {
+            this(galaxy, null, coordinateScale);
         }
 
-        public Builder(@Nullable SpaceCoordinates coordinates, double coordinateScale) {
+        public Builder(Galaxy galaxy, @Nullable SpaceCoordinates coordinates, double coordinateScale) {
+            this.galaxy = galaxy;
             this.coordinates = coordinates;
             this.coordinateScale = coordinateScale;
         }
@@ -96,6 +102,11 @@ public class SpaceTravel {
         private Builder() {
             this.coordinates = null;
             this.coordinateScale = -1;
+        }
+
+        public Builder galaxy(Galaxy galaxy) {
+            this.galaxy = galaxy;
+            return this;
         }
 
         public Builder coordinates(SpaceCoordinates coord) {
@@ -109,6 +120,9 @@ public class SpaceTravel {
         }
 
         public boolean canBuild(Function<ResourceLocation, SpaceTravel> p_138393_) {
+            if (galaxy == null) {
+                throw new IllegalStateException("Missing galaxy");
+            }
             if (coordinates == null && coordinateScale == -1) {
                 throw new IllegalStateException("Either coordinates or coordinate scale must be set!");
             }
@@ -123,7 +137,7 @@ public class SpaceTravel {
             if (!this.canBuild((loc) -> null)) {
                 throw new IllegalStateException("Tried to build incomplete teleport!");
             } else {
-                return new SpaceTravel(resourceLocation, this.coordinates, this.coordinateScale);
+                return new SpaceTravel(resourceLocation, this.galaxy, this.coordinates, this.coordinateScale);
             }
         }
 
@@ -144,6 +158,10 @@ public class SpaceTravel {
         public JsonObject serializeToJson() {
             JsonObject json = new JsonObject();
 
+            if (this.galaxy != null) {
+                json.addProperty("galaxy", this.galaxy.location().toString());
+            }
+
             if (this.coordinates != null) {
                 json.add("space_chunk_coordinates", this.coordinates.serializeToJson());
             }
@@ -156,6 +174,13 @@ public class SpaceTravel {
         }
 
         public void serializeToNetwork(FriendlyByteBuf byteBuf) {
+            if (this.galaxy == null) {
+                byteBuf.writeBoolean(false);
+            } else {
+                byteBuf.writeBoolean(true);
+                byteBuf.writeResourceLocation(this.galaxy.location());
+            }
+
             if (this.coordinates == null) {
                 byteBuf.writeBoolean(false);
             } else {

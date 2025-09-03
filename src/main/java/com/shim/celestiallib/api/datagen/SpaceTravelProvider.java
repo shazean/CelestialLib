@@ -57,8 +57,8 @@ public class SpaceTravelProvider implements DataProvider {
         return new SpaceTravel.SpaceCoordinates(x, z);
     }
 
-    private static Path createPath(Path p_123971_, SpaceTravel p_123972_) {
-        return p_123971_.resolve("data/" + modid + "/" + modid + "/space_travel/" + p_123972_.getId().getPath() + ".json");
+    private static Path createPath(Path path, SpaceTravel spaceTravel) {
+        return path.resolve("data/" + spaceTravel.getId().getNamespace() + "/celestial/space_travel/" + spaceTravel.getId().getPath() + ".json");
     }
 
     public String getName() {

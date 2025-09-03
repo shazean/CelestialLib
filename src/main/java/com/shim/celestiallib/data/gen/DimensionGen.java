@@ -76,10 +76,9 @@ public class DimensionGen {
             this.fixedBiome = fixedbiome;
         }
 
-        public DimensionGen.Builder typeSettingsAndPreset(ResourceKey<Level> dimension) {
+        public DimensionGen.Builder typeAndSettings(ResourceKey<Level> dimension) {
             this.type = dimension.location();
             this.settings = dimension.location();
-            this.preset = dimension.location();
             return this;
         }
 
@@ -190,6 +189,7 @@ public class DimensionGen {
         public void serializeToNetwork(FriendlyByteBuf byteBuf) {
 
             byteBuf.writeBoolean(this.useForgeSeed);
+
             byteBuf.writeLong(this.seed);
 
             if (this.type == null) {

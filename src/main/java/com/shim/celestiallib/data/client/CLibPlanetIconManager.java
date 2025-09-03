@@ -35,7 +35,7 @@ public class CLibPlanetIconManager extends SimpleJsonResourceReloadListener {
             String namespace = resource[0];
             String path = resource[1];
 
-            ResourceLocation texture = new ResourceLocation(namespace, "textures/" + path);
+            ResourceLocation texture = new ResourceLocation(namespace, "textures/" + path + ".png");
             int size = GsonHelper.getAsInt(json, "size");
 
             if (size < 4 || size > 256) {
@@ -43,8 +43,8 @@ public class CLibPlanetIconManager extends SimpleJsonResourceReloadListener {
             }
 
             Planet planet = CelestialUtil.getPlanetFromResourceLocation(dimensionPath);
-
-            planet.setTexture(texture, size);
+            if (planet != null)
+                planet.setTexture(texture, size);
 
         });
     }

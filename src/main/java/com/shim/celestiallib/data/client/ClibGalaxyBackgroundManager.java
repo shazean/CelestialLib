@@ -35,7 +35,7 @@ public class ClibGalaxyBackgroundManager extends SimpleJsonResourceReloadListene
             String namespace = resource[0];
             String path = resource[1];
 
-            ResourceLocation texture = new ResourceLocation(namespace, "textures/" + path);
+            ResourceLocation texture = new ResourceLocation(namespace, "textures/" + path + ".png");
 
             int size = GsonHelper.getAsInt(json, "size");
 
@@ -44,8 +44,8 @@ public class ClibGalaxyBackgroundManager extends SimpleJsonResourceReloadListene
             }
 
             Galaxy galaxy = CelestialUtil.getGalaxyFromResourceLocation(dimensionPath);
-
-            galaxy.setBackgroundImage(texture, size);
+            if (galaxy != null)
+                galaxy.setBackgroundImage(texture, size);
 
         });
     }

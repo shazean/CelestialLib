@@ -32,7 +32,7 @@ public class PlanetStructure extends StructureFeature<CLibConfiguration> {
 
         Galaxy galaxy = Galaxy.getGalaxy(context.config().getDimensionFromString());
         if (galaxy == null) {
-            CelestialLib.LOGGER.error("isFeatureChunk could not find galaxy for dimension {}, returning null", context.config().getDimensionFromString());
+            CelestialLib.LOGGER.error("isFeatureChunk could not find galaxy for dimension {}, returning false", context.config().getDimensionFromString());
             return false;
         }
 

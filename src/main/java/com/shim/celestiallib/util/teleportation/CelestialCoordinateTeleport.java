@@ -1,5 +1,6 @@
 package com.shim.celestiallib.util.teleportation;
 
+import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.api.world.galaxy.Galaxy;
 import net.minecraft.world.phys.Vec3;
 
@@ -8,6 +9,7 @@ public class CelestialCoordinateTeleport extends AbstractCelestialTeleportData {
     Vec3 coordinates;
 
     public CelestialCoordinateTeleport(Galaxy galaxy, int x, int z) {
+        CelestialLib.LOGGER.debug("coordinate teleport. galaxy: " + galaxy + ", x: " + x + "/ z: " + z);
         this.galaxy = galaxy;
         this.coordinates = new Vec3(x, 0, z);
     }

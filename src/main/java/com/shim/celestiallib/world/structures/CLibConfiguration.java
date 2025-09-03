@@ -16,7 +16,7 @@ public class CLibConfiguration implements FeatureConfiguration {
                         Codec.intRange(0, 7).fieldOf("size").forGetter(CLibConfiguration::maxDepth),
                         Codec.INT.fieldOf("x").forGetter(CLibConfiguration::x),
                         Codec.INT.fieldOf("z").forGetter(CLibConfiguration::z),
-                        Codec.STRING.fieldOf("scale").forGetter(CLibConfiguration::dimension))
+                        Codec.STRING.fieldOf("galaxy").forGetter(CLibConfiguration::dimension))
                 .apply(p_67764_, CLibConfiguration::new);
     });
     private final Holder<StructureTemplatePool> startPool;

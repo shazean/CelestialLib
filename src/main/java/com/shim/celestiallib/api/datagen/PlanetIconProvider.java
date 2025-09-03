@@ -55,7 +55,7 @@ public class PlanetIconProvider implements DataProvider {
     }
 
     private static Path createPath(Path path, PlanetIcon planetIcon) {
-        return path.resolve("assets/" + modid + "/models/celestial/planet/" + planetIcon.getId().getPath() + ".json");
+        return path.resolve("assets/" + planetIcon.getId().getNamespace() + "/models/celestial/planet/" + planetIcon.getId().getPath() + ".json");
     }
 
     public String getName() {

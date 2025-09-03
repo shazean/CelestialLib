@@ -65,8 +65,8 @@ public class CelestialLib {
         event.addListener(new CLibPlanetStructureTravelManager());
         event.addListener(new CLibDimensionEffectsManager());
 
-        event.addListener(new CLibPlanetManager());
-        event.addListener(new CLibGalaxyManager());
+        event.addListener(new CLibPlanetDataManager());
+        event.addListener(new CLibGalaxyDataManager());
 
     }
 }

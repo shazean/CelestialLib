@@ -58,7 +58,7 @@ public class PlanetStructureTravelProvider implements DataProvider {
     }
 
     private static Path createPath(Path path, PlanetStructureTravel travel) {
-        return path.resolve("data/" + modid + "/" + modid + "/structures/planets/" + travel.getId().getPath() + ".json");
+        return path.resolve("data/" + travel.getId().getNamespace() + "/celestial/structures/planets/" + travel.getId().getPath() + ".json");
     }
 
     public String getName() {
