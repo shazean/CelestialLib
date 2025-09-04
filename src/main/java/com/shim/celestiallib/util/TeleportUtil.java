@@ -26,10 +26,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkDirection;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class TeleportUtil {
 
@@ -51,8 +48,19 @@ public class TeleportUtil {
 
     private static final List<ResourceKey<Level>> PLANET_MOONS = new ArrayList<>();
 
-    public static void addPlanetMoon(ResourceKey<Level> dimension, List<ResourceKey<Level>> moons) {
+    public static void addMoons(ResourceKey<Level> dimension, List<ResourceKey<Level>> moons) {
         PLANET_MOONS_WITH_PLANET.put(dimension, moons);
+    }
+
+    public static void addMoon(ResourceKey<Level> dimension, ResourceKey<Level> moon) {
+        if (PLANET_MOONS_WITH_PLANET.containsKey(dimension)) {
+            ArrayList<ResourceKey<Level>> list = new ArrayList<>(PLANET_MOONS_WITH_PLANET.get(dimension));
+            list.add(moon);
+            PLANET_MOONS_WITH_PLANET.put(dimension, list);
+
+        } else {
+            PLANET_MOONS_WITH_PLANET.put(dimension, Collections.singletonList(moon));
+        }
     }
 
     public static void displayTeleportMessage(Entity entity, int teleportCooldown, ResourceKey<Level> destination) {
@@ -73,7 +81,7 @@ public class TeleportUtil {
 
     public static void displayLockedPlanetMessage(Entity entity, ResourceKey<Level> destination) {
         if (entity instanceof Player player) {
-                player.displayClientMessage(CelestialUtil.getDisplayName(destination)
+                player.displayClientMessage(CelestialUtil.getDisplayName(destination).append(" ")
                                 .append(new TranslatableComponent("celestial.teleport.locked")), true);
         }
     }

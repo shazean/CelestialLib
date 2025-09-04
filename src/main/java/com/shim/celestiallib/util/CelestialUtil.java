@@ -17,6 +17,7 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.*;
 
+@SuppressWarnings("LoggingSimilarMessage")
 public class CelestialUtil {
 
     public static TranslatableComponent getDisplayName(ResourceKey<Level> dimension) {
@@ -106,6 +107,7 @@ public class CelestialUtil {
         Vec3 coord = getPlanetLocation(planet);
         if (coord == null) {
             CelestialLib.LOGGER.error("Can't find planet location for " + planet + ". Probably missing spawn_chunk_coordinates from structures/planets file.");
+
             return null;
         }
         int galaxyRatio = Planet.getPlanet(planet).getGalaxy().getGalaxyRatio();
@@ -120,6 +122,15 @@ public class CelestialUtil {
         }
         int galaxyRatio = Planet.getPlanet(planet).getGalaxy().getGalaxyRatio();
         return new BlockPos(coord.x * galaxyRatio * 16, coord.y, coord.z * galaxyRatio * 16);
+    }
+
+    public static BlockPos getPlanetBlockCoordinatesNoGalaxyScale(ResourceKey<Level> planet) {
+        Vec3 coord = getPlanetLocation(planet);
+        if (coord == null) {
+            CelestialLib.LOGGER.error("Can't find planet location for " + planet + ". Probably missing spawn_chunk_coordinates from structures/planets file.");
+            return null;
+        }
+        return new BlockPos(coord.x * 16, coord.y, coord.z * 16);
     }
 
     public static ResourceKey<Level> getDimensionFromString(String dimensionKey) {
@@ -163,7 +174,7 @@ public class CelestialUtil {
     public static void addLockedCelestial(ResourceLocation advancement, ICelestial celestial) {
 
         if (LOCKED_CELESTIALS.containsKey(advancement)) {
-            ArrayList<ICelestial> list = new ArrayList<> (LOCKED_CELESTIALS.get(advancement));
+            ArrayList<ICelestial> list = new ArrayList<>(LOCKED_CELESTIALS.get(advancement));
             list.add(celestial);
             LOCKED_CELESTIALS.put(advancement, list);
         } else {
@@ -175,11 +186,11 @@ public class CelestialUtil {
 
 
         if (LOCKED_CELESTIALS_LIGHT_SPEED.containsKey(advancement)) {
-            ArrayList<ICelestial> list = new ArrayList<> (LOCKED_CELESTIALS_LIGHT_SPEED.get(advancement));
+            ArrayList<ICelestial> list = new ArrayList<>(LOCKED_CELESTIALS_LIGHT_SPEED.get(advancement));
             list.add(celestial);
             LOCKED_CELESTIALS_LIGHT_SPEED.put(advancement, list);
             CelestialLib.LOGGER.debug("locked celestials: " + LOCKED_CELESTIALS_LIGHT_SPEED.values());
-            CelestialLib.LOGGER.debug("celestial locked: " + LOCKED_CELESTIALS_LIGHT_SPEED.get(advancement).get(0).isLocked());
+            CelestialLib.LOGGER.debug("celestial locked: " + LOCKED_CELESTIALS_LIGHT_SPEED.get(advancement).get(0).isTravelLocked());
 
         } else {
             LOCKED_CELESTIALS_LIGHT_SPEED.put(advancement, Collections.singletonList(celestial));

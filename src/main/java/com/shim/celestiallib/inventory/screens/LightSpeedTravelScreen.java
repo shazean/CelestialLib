@@ -15,13 +15,17 @@ import com.shim.celestiallib.api.world.planet.Planet;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.AirItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.AirBlock;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.StringUtils;
 
@@ -318,6 +322,7 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
             if (CelestialUtil.getPlanetLocation(planet) == null) continue;
             if (!planet.getGalaxy().equals(this.selectedGalaxy)) continue;
             if (planet.isHidden()) continue;
+            if (planet.isMoon()) continue;
 
             if (!planetWidgets.containsKey(planet)) {
                 planetWidgets.put(planet, new PlanetWidget(planet, this.menu.getTravelDistance(planet)));
@@ -333,10 +338,11 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
 
         RenderSystem.setShaderTexture(0, widget.getTexture());
 
-        Vec3 planetLoc = CelestialUtil.getPlanetLocation(planet.getDimension());
+        ChunkPos planetLoc = CelestialUtil.getPlanetChunkCoordinates(planet.getDimension()); //CelestialUtil.getPlanetLocation(planet.getDimension());
         if (planetLoc == null) {
             return;
         }
+
         int scale = planet.getGalaxy().getGuiScale();
 
         int size = widget.getSize();
@@ -346,8 +352,10 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
         int xMovement = (galaxyX >= (galaxySize - 210)) ? -((galaxySize - 210) / 2) : ((galaxyX <= 0) ? ((galaxySize - 210) / 2) : (int) xDrag);
         int yMovement = (galaxyY >= (galaxySize - 100)) ? -((galaxySize - 100) / 2) : ((galaxyY <= 0) ? ((galaxySize - 100) / 2) : (int) yDrag);
 
-        int xLoc = x + 10 + 105 - (size / 2) + xMovement + (int) (planetLoc.x() / scale);
-        int yLoc = y + 107 + 50 - (size / 2) + yMovement + (int) (planetLoc.y() / scale);
+        int xLoc = x + 10 + 105 - (size / 2) + xMovement + (int) ((planetLoc.x * 1.5)  / scale);
+        int yLoc = y + 107 + 50 - (size / 2) + yMovement + (int) ((planetLoc.z * 1.5) / scale);
+
+//        CelestialLib.LOGGER.debug("planet: " + planet + ", xLoc: " + xLoc + ", yLoc: " + yLoc);
 
 //        CelestialLib.LOGGER.debug("yLoc: " + yLoc + ", galaxyY: " + galaxyY + ", yDrag: " + yDrag + ", yMovement: " + yMovement);
         int yStarting = 0;
@@ -418,8 +426,10 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
 
                 this.itemRenderer.renderAndDecorateFakeItem(planetCost, x + xPos, y + yPos);
 //                this.itemRenderer.renderGuiItemDecorations(this.font, planetCost, x + xPos, y + yPos);
-                this.renderItemStackText(poseStack, have, need, x + xPos, y + yPos);
-                this.renderCostTooltip(poseStack, x + xPos, y + yPos, mouseX, mouseY, planetCost, have, need);
+                if (!planetCost.isEmpty()) {
+                    this.renderItemStackText(poseStack, have, need, x + xPos, y + yPos);
+                    this.renderCostTooltip(poseStack, x + xPos, y + yPos, mouseX, mouseY, planetCost, have, need);
+                }
 
                 if (have >= need)
                     this.canTravel = true;
@@ -431,8 +441,10 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
                 xPos = 124;
 
                 this.itemRenderer.renderAndDecorateFakeItem(galaxyCost, x + xPos, y + yPos);
-                this.renderItemStackText(poseStack, have, need, x + xPos, y + yPos);
-                this.renderCostTooltip(poseStack, x + xPos, y + yPos, mouseX, mouseY, galaxyCost, have, need);
+                if (!planetCost.isEmpty()) {
+                    this.renderItemStackText(poseStack, have, need, x + xPos, y + yPos);
+                    this.renderCostTooltip(poseStack, x + xPos, y + yPos, mouseX, mouseY, galaxyCost, have, need);
+                }
 
                 if (have < need)
                     this.canTravel = false;

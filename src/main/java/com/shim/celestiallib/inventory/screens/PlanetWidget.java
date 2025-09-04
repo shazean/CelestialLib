@@ -52,14 +52,6 @@ public class PlanetWidget extends GuiComponent {
 
         tooltip.add(CelestialUtil.getDisplayName(planet.getDimension()));
 
-        IUnlock travelCap = CelestialLib.getCapability(CelestialLib.PROXY.getPlayer(), CLibCapabilities.UNLOCK_CAPABILITY);
-
-        if (travelCap != null) {
-            if (travelCap.isCelestialLightSpeedLocked(planet)) {
-                tooltip.add(new TranslatableComponent("menu.celestiallib.locked").withStyle(ChatFormatting.RED));
-            }
-        }
-
         BlockPos planetLoc = CelestialUtil.getPlanetBlockCoordinates(planet.getDimension());
         if (planetLoc != null)
             tooltip.add(new TextComponent("X: " + planetLoc.getX() + " / Z: " + planetLoc.getZ()));
@@ -78,6 +70,14 @@ public class PlanetWidget extends GuiComponent {
             PlanetCooldown cooldown = cooldownCap.getCooldown(planet);
             if (cooldown != null)
                 tooltip.add(cooldown.getCooldownComponent());
+        }
+
+        IUnlock travelCap = CelestialLib.getCapability(CelestialLib.PROXY.getPlayer(), CLibCapabilities.UNLOCK_CAPABILITY);
+
+        if (travelCap != null) {
+            if (travelCap.isCelestialLightSpeedLocked(planet)) {
+                tooltip.add(new TranslatableComponent("menu.celestiallib.locked").withStyle(ChatFormatting.RED));
+            }
         }
 
         return tooltip;

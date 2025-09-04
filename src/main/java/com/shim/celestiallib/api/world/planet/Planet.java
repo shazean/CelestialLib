@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public class Planet extends ForgeRegistryEntry<Planet> implements ICelestial {
-    private Supplier<GravityEffect> gravity = null;
+    private GravityEffect gravity = null;
     private final ResourceKey<Level> dimension;
     private final Galaxy galaxy;
     boolean isLocked = false;
@@ -26,7 +26,7 @@ public class Planet extends ForgeRegistryEntry<Planet> implements ICelestial {
     ResourceLocation texture;
     int textureSize = 16; //default size
     private ItemStack lightSpeedCost = new ItemStack(Blocks.AIR);
-    Supplier<Integer> costMultiplier;
+    int costMultiplier;
 
     public static final Map<ResourceKey<Level>, Planet> DIMENSIONS = new HashMap<>();
     private boolean cooldownsEnabled = true;
@@ -44,11 +44,11 @@ public class Planet extends ForgeRegistryEntry<Planet> implements ICelestial {
         DIMENSIONS.put(dimension, this);
     }
 
-    public void setGravity(Supplier<GravityEffect> gravity) {
+    public void setGravity(GravityEffect gravity) {
         this.gravity = gravity;
     }
 
-    public void setLocked() {
+    public void setTravelLocked() {
         this.isLocked = true;
     }
 
@@ -61,13 +61,13 @@ public class Planet extends ForgeRegistryEntry<Planet> implements ICelestial {
         this.cooldownsEnabled = false;
     }
 
-    public void setLightSpeedCost(ItemStack cost, Supplier<Integer> costMultiplier) {
+    public void setLightSpeedCost(ItemStack cost, int costMultiplier) {
         this.lightSpeedCost = cost;
         this.costMultiplier = costMultiplier;
     }
 
     public void setLightSpeedCost(ItemStack itemStack) {
-        setLightSpeedCost(itemStack, () -> 0);
+        setLightSpeedCost(itemStack, 0);
     }
 
     public static Planet getPlanet(ResourceKey<Level> dimension) {
@@ -81,7 +81,7 @@ public class Planet extends ForgeRegistryEntry<Planet> implements ICelestial {
     @Nullable
     public GravityEffect getGravity() {
         if (gravity != null)
-            return this.gravity.get();
+            return this.gravity;
         else return null;
     }
 
@@ -89,7 +89,7 @@ public class Planet extends ForgeRegistryEntry<Planet> implements ICelestial {
         return this.galaxy;
     }
 
-    public boolean isLocked() {
+    public boolean isTravelLocked() {
         return this.isLocked;
     }
 
@@ -119,10 +119,11 @@ public class Planet extends ForgeRegistryEntry<Planet> implements ICelestial {
     }
 
     public ItemStack getLightSpeedCost(float distance) {
-        int costMultiplier = Mth.clamp(this.costMultiplier.get(), 0, 2048);
+        if (this.lightSpeedCost == null) return new ItemStack(Blocks.AIR);
+
+        int costMultiplier = Mth.clamp(this.costMultiplier, 0, 2048);
         float multiplier = costMultiplier == 0 ? 0 : distance / (float) costMultiplier; //check to avoid dividing by 0… oops
-        float f1 = this.lightSpeedCost.getCount() * multiplier;
-        int cost = this.lightSpeedCost.getCount() + (int) f1;
+        int cost = this.lightSpeedCost.getCount() + (int) (this.lightSpeedCost.getCount() * multiplier);
 
         return new ItemStack(this.lightSpeedCost.getItem(), cost);
     }

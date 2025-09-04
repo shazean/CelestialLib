@@ -23,6 +23,7 @@ public class UnlockCelestialsHandler implements IUnlock {
 
     Map<ICelestial, Boolean> LOCKED_CELESTIALS = new HashMap<>();
     Map<ICelestial, Boolean> LOCKED_LIGHT_SPEED_CELESTIALS = new HashMap<>();
+
     @Override
     public boolean isCelestialLocked(ICelestial celestial) {
         if (!LOCKED_CELESTIALS.containsKey(celestial))

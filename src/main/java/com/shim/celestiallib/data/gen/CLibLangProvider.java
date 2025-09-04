@@ -24,6 +24,7 @@ public class CLibLangProvider extends LanguageProvider {
 
         add("celestial.teleport.message_1", "Teleporting to ");
         add("celestial.teleport.message_2", " in… ");
+        add("celestial.teleport.locked", "is locked");
 
         add("menu.celestiallib.light_speed_travel.title", "Light Speed Travel");
         add("menu.celestiallib.light_speed_travel.cost", "Cost:");
@@ -34,7 +35,8 @@ public class CLibLangProvider extends LanguageProvider {
         add("menu.celestiallib.light_speed_travel.invalid", "Invalid location for light speed travel");
         add("menu.celestiallib.locked", "Locked");
 
-        add("key.categories.celestiallib.light_speed.light_speed_travel", "Open Light Speed Travel Menu");
+        add("key.categories.celestiallib.light_speed", "Light Speed Travel");
+        add("key.celestiallib.light_speed_travel", "Open Light Speed Travel Menu");
 
         addBiome(PresetBiomeKeys.HIGH_DESERT, "High Desert");
         addBiome(PresetBiomeKeys.LOW_DESERT, "Low Desert");

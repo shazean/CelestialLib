@@ -99,7 +99,7 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> implements ICelestial {
 
     //END GALAXY BUILDER METHODS
 
-    public void setLocked() {}
+    public void setTravelLocked() {}
 
     public void setLightSpeedLockedAndMaybeHidden(boolean isHidden) {
         this.isLightSpeedLocked = true;
@@ -145,7 +145,7 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> implements ICelestial {
         return DIMENSIONS.containsKey(dimension);
     }
 
-    public boolean isLocked() {
+    public boolean isTravelLocked() {
         return this.isLightSpeedLocked;
     }
 

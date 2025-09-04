@@ -14,7 +14,7 @@ public class CLibKeybinds {
     public static KeyMapping OPEN_LIGHT_SPEED_TRAVEL;
 
     public static void register(FMLClientSetupEvent event) {
-        OPEN_LIGHT_SPEED_TRAVEL = keymap("light_speed_travel", GLFW.GLFW_KEY_L, "key.categories.celestiallib.light_speed");
+        OPEN_LIGHT_SPEED_TRAVEL = keymap("light_speed_travel", GLFW.GLFW_KEY_Y, "key.categories.celestiallib.light_speed");
     }
 
     private static KeyMapping keymap(String name, int defaultMapping, String category) {

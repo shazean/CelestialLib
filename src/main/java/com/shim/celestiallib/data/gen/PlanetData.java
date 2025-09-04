@@ -78,9 +78,9 @@ public class PlanetData {
             return this;
         }
 
-        public PlanetData.Builder unlockBy(ResourceLocation unlockBy) {
+        public PlanetData.Builder travelLocked(ResourceLocation unlockAdvancement) {
             this.locked = true;
-            this.unlockable = unlockBy;
+            this.unlockable = unlockAdvancement;
             return this;
         }
 
@@ -140,8 +140,10 @@ public class PlanetData {
             if (this.unlockable != null) {
                 JsonObject lockedJson = new JsonObject();
                 lockedJson.addProperty("unlock_advancement", this.unlockable.toString());
-                json.add("locked", lockedJson);
+                json.add("travel_locked", lockedJson);
             }
+
+
 
 
             JsonObject lightSpeedJson = new JsonObject();
@@ -154,7 +156,7 @@ public class PlanetData {
                 lightSpeedJson.add("base_cost", costJson);
             }
 
-            if (this.multiplier != -1)
+            if (this.multiplier != -1 && this.multiplier != 0)
                 lightSpeedJson.addProperty("cost_multiplier", this.multiplier);
 
             JsonObject lockedLightSpeedJson = new JsonObject();
@@ -163,9 +165,11 @@ public class PlanetData {
                 lockedLightSpeedJson.addProperty("hidden", this.lightSpeedHidden);
                 if (this.lightSpeedUnlockable != null)
                     lockedLightSpeedJson.addProperty("unlock_advancement", this.lightSpeedUnlockable.toString());
+
+                lightSpeedJson.add("locked", lockedLightSpeedJson);
+
             }
 
-            lightSpeedJson.add("locked", lockedLightSpeedJson);
             json.add("light_speed_travel", lightSpeedJson);
 
             return json;

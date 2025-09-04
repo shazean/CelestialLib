@@ -91,23 +91,23 @@ public class CLibPlanetDataManager extends SimpleJsonResourceReloadListener {
                 multiplier = 0;
             }
 
-            if (json.has("locked")) {
+            if (json.has("travel_locked")) {
                 locked = true;
-                JsonObject lockedJson = GsonHelper.getAsJsonObject(json, "locked");
+                JsonObject lockedJson = GsonHelper.getAsJsonObject(json, "travel_locked");
 
                 unlockable = new ResourceLocation(GsonHelper.getAsString(lockedJson, "unlock_advancement"));
             }
 
             if (cost != null)
-              planet.setLightSpeedCost(cost, () -> multiplier);
+              planet.setLightSpeedCost(cost, multiplier);
 
             if (locked) {
-                planet.setLocked();
+                planet.setTravelLocked();
                 CelestialUtil.addLockedCelestial(unlockable, planet);
             }
 
             if (gravity != null && gravityEffect != null)
-                planet.setGravity(() -> gravityEffect);
+                planet.setGravity(gravityEffect);
 
             if (lightSpeedLocked) {
                 planet.setLightSpeedLockedAndMaybeHidden(lightSpeedHidden);

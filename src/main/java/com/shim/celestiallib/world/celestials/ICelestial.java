@@ -7,9 +7,9 @@ import net.minecraft.world.level.Level;
 
 public interface ICelestial {
 
-    void setLocked();
+    void setTravelLocked();
     void setLightSpeedLockedAndMaybeHidden(boolean isHidden);
-    boolean isLocked();
+    boolean isTravelLocked();
     boolean isLightSpeedLocked();
     ResourceKey<Level> getDimension();
     boolean isGalaxy();

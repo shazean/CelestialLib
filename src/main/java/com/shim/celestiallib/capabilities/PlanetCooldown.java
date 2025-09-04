@@ -3,6 +3,7 @@ package com.shim.celestiallib.capabilities;
 import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.api.world.galaxy.Galaxy;
 import com.shim.celestiallib.api.world.planet.Planet;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
@@ -79,7 +80,11 @@ public class PlanetCooldown {
     }
 
     public Component getCooldownComponent() {
-        return new TranslatableComponent("menu.celestiallib.light_speed_travel.cooldown").append(getFormattedCooldown());
+        if (this.currentCooldown > 0)
+            return new TranslatableComponent("menu.celestiallib.light_speed_travel.cooldown").append(getFormattedCooldown()).withStyle(ChatFormatting.RED);
+        else {
+            return new TranslatableComponent("menu.celestiallib.light_speed_travel.cooldown").append(getFormattedCooldown()).withStyle(ChatFormatting.WHITE);
+        }
     }
 
     public static PlanetCooldown createFromTag(CompoundTag nbt, Planet planet) {
