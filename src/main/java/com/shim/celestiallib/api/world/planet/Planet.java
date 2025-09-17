@@ -37,9 +37,8 @@ public class Planet extends ForgeRegistryEntry<Planet> implements ICelestial {
         this.dimension = dimension;
         this.galaxy = galaxy;
 
-        //FIXME add exception for overworld…?
-        if (DIMENSIONS.containsKey(dimension)) {
-            throw new IllegalStateException("dimension: " + dimension.toString() + " already has an associated planet");
+        if (DIMENSIONS.containsKey(dimension) && !dimension.equals(Level.OVERWORLD)) {
+            throw new IllegalStateException("dimension: " + dimension.location() + " already has an associated planet");
         }
         DIMENSIONS.put(dimension, this);
     }

@@ -6,6 +6,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.capabilities.CLibCapabilities;
+import com.shim.celestiallib.capabilities.IUnlock;
 import com.shim.celestiallib.capabilities.PlanetCoolDownHandler;
 import com.shim.celestiallib.inventory.menus.SingleGalaxyLightSpeedMenu;
 import com.shim.celestiallib.util.CelestialUtil;
@@ -135,17 +136,27 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
         for (PlanetWidget widget : this.planetsOnScreen) {
 
             if (this.isHovering(x - this.leftPos + widget.getX(), y - this.topPos + widget.getY(), widget.getWidth(), widget.getHeight(), mouseX, mouseY)) {
+                IUnlock travelCap = CelestialLib.getCapability(CelestialLib.PROXY.getPlayer(), CLibCapabilities.UNLOCK_CAPABILITY);
                 if (widget.getPlanet().getGalaxy().areCooldownsEnabled() && widget.getPlanet().areCooldownsEnabled()) {
                     PlanetCoolDownHandler coolDownCap = (PlanetCoolDownHandler) CelestialLib.getCapability(CelestialLib.PROXY.getPlayer(), CLibCapabilities.COOLDOWN_CAPABILITY);
                     if (coolDownCap != null) {
                         if (coolDownCap.getCooldown(widget.getPlanet()).getCurrentCooldown() == 0) {
-                            this.selectedPlanet = widget.getPlanet();
+
+                            if (travelCap != null) {
+                                if (!travelCap.isCelestialLightSpeedLocked(widget.getPlanet())) {
+                                    this.selectedPlanet = widget.getPlanet();
+                                }
+                            }
                         }
                         break;
                     }
 
                 } else {
-                    this.selectedPlanet = widget.getPlanet();
+                    if (travelCap != null) {
+                        if (!travelCap.isCelestialLightSpeedLocked(widget.getPlanet())) {
+                            this.selectedPlanet = widget.getPlanet();
+                        }
+                    }
                     break;
                 }
             }
@@ -220,7 +231,7 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
             yStarting = yOffset;
         }
         if (yLoc > y + 130 - size) {
-            yOffset = -Mth.clamp(y + 130 - size - yLoc, -size, 0);
+            yOffset = -Mth.clamp(y + 140 - size - yLoc, -size, 0); //130
             yStarting = 0;
         }
 
@@ -229,12 +240,12 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
             xStarting = xOffset;
         }
         if (xLoc > x + 219 - size) {
-            xOffset = -Mth.clamp(x + 219 - size - xLoc, -size, 0);
+            xOffset = -Mth.clamp(x + 220 - size - xLoc, -size, 0); //219
             xStarting = 0;
         }
 
-        yLoc = Mth.clamp(yLoc, y + 10, y + 130);
-        xLoc = Mth.clamp(xLoc, x + 10, x + 219);
+        yLoc = Mth.clamp(yLoc, y + 10, y + 140); //130
+        xLoc = Mth.clamp(xLoc, x + 10, x + 220); //219
 
 //        if (xLoc < 10 - size || xLoc > 219 + size || yLoc < 10 || yLoc > 130)
 //            return;
@@ -262,7 +273,6 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
         float travelDistance = this.menu.getTravelDistance(this.selectedPlanet);
 
         if (selectedPlanet.getLightSpeedCost(travelDistance) != null) {
-            this.font.draw(poseStack, COST, x + 10, y + 182, 4210752);
             int need;
             int have;
             ItemStack cost = this.selectedPlanet.getLightSpeedCost(travelDistance);
@@ -279,6 +289,7 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
                 this.itemRenderer.renderAndDecorateFakeItem(cost, x + xPos, y + yPos);
 //                this.itemRenderer.renderGuiItemDecorations(this.font, cost, x + xPos, y + yPos);
                 if (!cost.isEmpty()) {
+                    this.font.draw(poseStack, COST, x + 10, y + 182, 4210752);
                     this.renderItemStackText(poseStack, have, need, x + xPos, y + yPos);
                     this.renderCostTooltip(poseStack, x + xPos, y + yPos, mouseX, mouseY, cost, have, need);
                 }

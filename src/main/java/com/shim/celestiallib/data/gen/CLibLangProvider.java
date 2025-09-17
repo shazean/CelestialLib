@@ -25,6 +25,7 @@ public class CLibLangProvider extends LanguageProvider {
         add("celestial.teleport.message_1", "Teleporting to ");
         add("celestial.teleport.message_2", " in… ");
         add("celestial.teleport.locked", "is locked");
+        add("celestial.teleport.teleporting", "Teleporting!");
 
         add("menu.celestiallib.light_speed_travel.title", "Light Speed Travel");
         add("menu.celestiallib.light_speed_travel.cost", "Cost:");

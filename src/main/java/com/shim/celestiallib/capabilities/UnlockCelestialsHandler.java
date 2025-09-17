@@ -27,7 +27,7 @@ public class UnlockCelestialsHandler implements IUnlock {
     @Override
     public boolean isCelestialLocked(ICelestial celestial) {
         if (!LOCKED_CELESTIALS.containsKey(celestial))
-            LOCKED_CELESTIALS.put(celestial, celestial.isLightSpeedLocked());
+            LOCKED_CELESTIALS.put(celestial, celestial.isTravelLocked());
         return LOCKED_CELESTIALS.get(celestial);
     }
 

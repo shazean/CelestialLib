@@ -67,42 +67,42 @@ public class ServerDidLightTravelPacket {
     public static void handle(ServerDidLightTravelPacket message, Supplier<NetworkEvent.Context> contextSupplier) {
         NetworkEvent.Context context = contextSupplier.get();
         context.enqueueWork(() -> {
-//            ServerPlayer serverPlayer = context.getSender();
-//
-//            if (serverPlayer != null) {
-//
+            ServerPlayer serverPlayer = context.getSender();
+
+            if (serverPlayer != null) {
+
+                Entity entity = serverPlayer.level.getEntity(message.spaceVehicleId);
+
+                ArrayList<Entity> passengers = null;
+
+                if (message.additionalEntities != null) {
+                    passengers = new ArrayList<>();
+                    for (int entityId : message.additionalEntities) {
+                        passengers.add(serverPlayer.level.getEntity(entityId));
+                    }
+                }
+
+
+                TeleportUtil.finishLightSpeedTravel(entity, passengers, message.planetPos);
+
 //                Entity entity = serverPlayer.level.getEntity(message.spaceVehicleId);
+//                ISpaceFlight flightCap = CelestialLib.getCapability(entity, CLibCapabilities.SPACE_FLIGHT_CAPABILITY);
 //
-//                ArrayList<Entity> passengers = null;
+//                if (flightCap != null) {
 //
-//                if (message.additionalEntities != null) {
-//                    passengers = new ArrayList<>();
-//                    for (int entityId : message.additionalEntities) {
-//                        passengers.add(serverPlayer.level.getEntity(entityId));
+//                    entity.moveTo(message.planetPos.getX(), message.planetPos.getY(), message.planetPos.getZ());
+//
+//                    if (message.additionalEntities != null) {
+//                        for (int entityId : message.additionalEntities) {
+//                            Entity passenger = serverPlayer.level.getEntity(entityId);
+//                            if (passenger != null) {
+//                                passenger.moveTo(message.planetPos.getX(), message.planetPos.getY(), message.planetPos.getZ());
+//                                passenger.startRiding(entity);
+//                            }
+//                        }
 //                    }
 //                }
-//
-//
-//                TeleportUtil.finishLightSpeedTravel(entity, passengers, message.planetPos);
-//
-////                Entity entity = serverPlayer.level.getEntity(message.spaceVehicleId);
-////                ISpaceFlight flightCap = CelestialLib.getCapability(entity, CLibCapabilities.SPACE_FLIGHT_CAPABILITY);
-////
-////                if (flightCap != null) {
-////
-////                    entity.moveTo(message.planetPos.getX(), message.planetPos.getY(), message.planetPos.getZ());
-////
-////                    if (message.additionalEntities != null) {
-////                        for (int entityId : message.additionalEntities) {
-////                            Entity passenger = serverPlayer.level.getEntity(entityId);
-////                            if (passenger != null) {
-////                                passenger.moveTo(message.planetPos.getX(), message.planetPos.getY(), message.planetPos.getZ());
-////                                passenger.startRiding(entity);
-////                            }
-////                        }
-////                    }
-////                }
-//            }
+            }
         });
         context.setPacketHandled(true);
     }

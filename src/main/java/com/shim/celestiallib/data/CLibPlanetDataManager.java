@@ -25,6 +25,8 @@ public class CLibPlanetDataManager extends SimpleJsonResourceReloadListener {
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> elements, ResourceManager p_10794_, ProfilerFiller p_10795_) {
 
+        CelestialUtil.clearLockedCelestials();
+        CelestialUtil.clearLockedLightSpeedCelestials();
 
         elements.forEach((dimensionPath, element) -> {
 
@@ -112,6 +114,9 @@ public class CLibPlanetDataManager extends SimpleJsonResourceReloadListener {
             if (lightSpeedLocked) {
                 planet.setLightSpeedLockedAndMaybeHidden(lightSpeedHidden);
                 CelestialUtil.addLockedLightSpeedCelestial(lightSpeedUnlockable, planet);
+                if (planet.isMoon()) {
+                    CelestialLib.LOGGER.warn(planet.location() + " is a moon and is light speed locked, but light speed locking does nothing for moons.");
+                }
 
             }
         });

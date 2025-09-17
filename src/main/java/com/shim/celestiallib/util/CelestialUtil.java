@@ -183,15 +183,10 @@ public class CelestialUtil {
     }
 
     public static void addLockedLightSpeedCelestial(ResourceLocation advancement, ICelestial celestial) {
-
-
         if (LOCKED_CELESTIALS_LIGHT_SPEED.containsKey(advancement)) {
             ArrayList<ICelestial> list = new ArrayList<>(LOCKED_CELESTIALS_LIGHT_SPEED.get(advancement));
             list.add(celestial);
             LOCKED_CELESTIALS_LIGHT_SPEED.put(advancement, list);
-            CelestialLib.LOGGER.debug("locked celestials: " + LOCKED_CELESTIALS_LIGHT_SPEED.values());
-            CelestialLib.LOGGER.debug("celestial locked: " + LOCKED_CELESTIALS_LIGHT_SPEED.get(advancement).get(0).isTravelLocked());
-
         } else {
             LOCKED_CELESTIALS_LIGHT_SPEED.put(advancement, Collections.singletonList(celestial));
         }
@@ -204,36 +199,4 @@ public class CelestialUtil {
     public static List<ICelestial> getLockedLightSpeedCelestials(ResourceLocation advancement) {
         return LOCKED_CELESTIALS_LIGHT_SPEED.getOrDefault(advancement, null);
     }
-
-
-//    protected static Map<UnlockCondition, ICelestial> UNLOCKABLE_CELESTIALS = new HashMap<>();
-//
-//    public static void clearUnlockableCelestials() {
-//        UNLOCKABLE_CELESTIALS.clear();
-//    }
-//
-//    public static ICelestial getUnlockableCelestial(UnlockCondition condition) {
-//        return UNLOCKABLE_CELESTIALS.get(condition);
-//    }
-//
-//    public static void addUnlockableCelestial(UnlockCondition condition, ICelestial celestial) {
-//        UNLOCKABLE_CELESTIALS.put(condition, celestial);
-//    }
-//
-//    public static void addUnlockableCelestial(List<UnlockCondition> conditions, ICelestial celestial) {
-//        for (UnlockCondition condition : conditions) {
-//            UNLOCKABLE_CELESTIALS.put(condition, celestial);
-//        }
-//    }
-//
-//    public static List<ICelestial> getCelestialsWithMatchingCondition(UnlockCondition condition) {
-//        ArrayList<ICelestial> list = new ArrayList<>();
-//        for (UnlockCondition c : UNLOCKABLE_CELESTIALS.keySet()) {
-//            if (c.equals(condition)) {
-//                list.add(UNLOCKABLE_CELESTIALS.get(c));
-//            }
-//        }
-//        return list;
-//    }
-
 }

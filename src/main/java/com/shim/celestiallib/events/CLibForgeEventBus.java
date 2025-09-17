@@ -83,7 +83,7 @@ public class CLibForgeEventBus {
             if (spaceVehicle != null) {
                 //this is the logic for traveling from a dimension TO its appropriate galaxy
                 //check if space travel is allowed, and we're at the appropriate height
-                if (flightCap.canSpaceTravel(spaceVehicle) && flightCap.isTeleportHeight(spaceVehicle)) {//&& !spaceVehicle.level.dimension().equals(CelestialDimensions.SPACE)) {
+                if (flightCap.canSpaceTravel(spaceVehicle) && flightCap.isTeleportHeight(spaceVehicle) && !Galaxy.isGalaxyDimension(spaceVehicle.level.dimension())) {//&& !spaceVehicle.level.dimension().equals(CelestialDimensions.SPACE)) {
                     //find out what the destination galaxy is based off current dimension
                     ResourceKey<Level> destination = TeleportUtil.getGalaxyDestination(spaceVehicle.level.dimension());
 
@@ -105,7 +105,7 @@ public class CLibForgeEventBus {
                         BlockPos teleportLocation = CelestialUtil.getDimensionToSpaceCoordinates(spaceVehicle.level.dimension(), new ChunkPos(pos));
 
                         //teleport and reset capability cooldown
-                        TeleportUtil.teleport(spaceVehicle, passengers, destination, teleportLocation);
+                        TeleportUtil.teleportToDimension(spaceVehicle, passengers, destination, teleportLocation);
                         flightCap.resetTeleportationCooldown();
                     } else { //decrease cooldown
                         if (event.phase.equals(TickEvent.Phase.END)) {
@@ -162,7 +162,7 @@ public class CLibForgeEventBus {
                                     }
 
                                     //teleport and reset cooldown
-                                    TeleportUtil.teleport(spaceVehicle, passengers, destination, spaceVehicle.blockPosition());
+                                    TeleportUtil.teleportToDimension(spaceVehicle, passengers, destination, spaceVehicle.blockPosition());
                                     flightCap.resetTeleportationCooldown();
 
                                 } else {
@@ -358,31 +358,7 @@ public class CLibForgeEventBus {
         if (unlockCap != null) {
             unlockCap.sync(player);
         }
-
-//        //check master list for relevant conditions
-//        List<ICelestial> celestials = CelestialUtil.getCelestialsWithMatchingCondition(UnlockConditions.PLANET_VISITED.get());
-//
-//        //get player capability
-//        IUnlock conditionCap = CelestialLib.getCapability(player, CLibCapabilities.UNLOCK_CONDITION_CAPABILITY);
-//
-//        for (ICelestial celestial : celestials) {
-//            //check if planets/galaxies gathered from master list are still locked (if they're still in the locked map)
-//            if (conditionCap.getLockedCelestials().containsKey(celestial)) {
-//                //check if planet/galaxy still needs THIS condition unlocked
-//                if (conditionCap.getLockedCelestials().get(celestial).containsKey(UnlockConditions.PLANET_VISITED.get()) &&
-//                        conditionCap.getLockedCelestials().get(celestial).get(UnlockConditions.PLANET_VISITED.get())) {
-//                    //check if exact criteria matches
-//                    for (UnlockCondition c : conditionCap.getLockedCelestials().get(celestial).keySet()) {
-//                        if (c.matches(event.getTo())) {
-//
-//                        }
-//                    }
-//
-//                }
-//            }
-//        }
     }
-
 
     @SubscribeEvent
     public static void onEntityEquipmentChange(LivingEquipmentChangeEvent event) {

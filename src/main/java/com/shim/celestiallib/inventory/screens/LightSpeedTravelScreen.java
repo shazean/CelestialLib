@@ -35,15 +35,15 @@ import java.util.List;
 import java.util.Map;
 
 public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTravelMenu> {
-    private static final ResourceLocation TEXTURE = new ResourceLocation(CelestialLib.MODID, "textures/gui/light_speed_travel/light_speed_travel.png");
-    private static final ResourceLocation DEFAULT_BG = new ResourceLocation(CelestialLib.MODID, "textures/gui/light_speed_travel/default_galaxy_background.png");
+    protected static final ResourceLocation TEXTURE = new ResourceLocation(CelestialLib.MODID, "textures/gui/light_speed_travel/light_speed_travel.png");
+    protected static final ResourceLocation DEFAULT_BG = new ResourceLocation(CelestialLib.MODID, "textures/gui/light_speed_travel/default_galaxy_background.png");
 
-    private static final Component TITLE = new TranslatableComponent("menu.celestiallib.light_speed_travel.title");
-    private static final Component COST = new TranslatableComponent("menu.celestiallib.light_speed_travel.cost");
-    private static final Component TRAVEL = new TranslatableComponent("menu.celestiallib.light_speed_travel.travel");
+    protected static final Component TITLE = new TranslatableComponent("menu.celestiallib.light_speed_travel.title");
+    protected static final Component COST = new TranslatableComponent("menu.celestiallib.light_speed_travel.cost");
+    protected static final Component TRAVEL = new TranslatableComponent("menu.celestiallib.light_speed_travel.travel");
 
-    private Galaxy selectedGalaxy;
-    private Planet selectedPlanet;
+    protected Galaxy selectedGalaxy;
+    protected Planet selectedPlanet;
     double xDrag = 0.0;
     double yDrag = 0.0;
 
@@ -53,12 +53,11 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
 
     boolean isDragging;
 
-    private final Galaxy[] galaxiesOnScreen = new Galaxy[5];
-    private final ArrayList<PlanetWidget> planetsOnScreen = new ArrayList<>();
+    protected final Galaxy[] galaxiesOnScreen = new Galaxy[5];
+    protected final ArrayList<PlanetWidget> planetsOnScreen = new ArrayList<>();
+    protected final Map<Planet, PlanetWidget> planetWidgets = new HashMap<>();
 
-    private final Map<Planet, PlanetWidget> planetWidgets = new HashMap<>();
-
-    private List<Component> tooltip = Lists.newArrayList();
+    protected List<Component> tooltip = Lists.newArrayList();
 
     boolean canTravel = false;
     boolean travelClicked = false;
@@ -192,20 +191,27 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
         for (PlanetWidget widget : this.planetsOnScreen) {
 
             if (this.isHovering(x - this.leftPos + widget.getX(), y - this.topPos + widget.getY(), widget.getWidth(), widget.getHeight(), mouseX, mouseY)) {
+                IUnlock travelCap = CelestialLib.getCapability(CelestialLib.PROXY.getPlayer(), CLibCapabilities.UNLOCK_CAPABILITY);
                 if (widget.getPlanet().getGalaxy().areCooldownsEnabled() && widget.getPlanet().areCooldownsEnabled()) {
-                    ICoolDown coolDownCap = CelestialLib.getCapability(CelestialLib.PROXY.getPlayer(), CLibCapabilities.COOLDOWN_CAPABILITY);
+                    PlanetCoolDownHandler coolDownCap = (PlanetCoolDownHandler) CelestialLib.getCapability(CelestialLib.PROXY.getPlayer(), CLibCapabilities.COOLDOWN_CAPABILITY);
                     if (coolDownCap != null) {
                         if (coolDownCap.getCooldown(widget.getPlanet()).getCurrentCooldown() == 0) {
 
-                            IUnlock unlockCap = CelestialLib.getCapability(CelestialLib.PROXY.getPlayer(), CLibCapabilities.UNLOCK_CAPABILITY);
-                            if (unlockCap != null && !unlockCap.isCelestialLightSpeedLocked(widget.getPlanet()))
-                                this.selectedPlanet = widget.getPlanet();
+                            if (travelCap != null) {
+                                if (!travelCap.isCelestialLightSpeedLocked(widget.getPlanet())) {
+                                    this.selectedPlanet = widget.getPlanet();
+                                }
+                            }
                         }
                         break;
                     }
 
                 } else {
-                    this.selectedPlanet = widget.getPlanet();
+                    if (travelCap != null) {
+                        if (!travelCap.isCelestialLightSpeedLocked(widget.getPlanet())) {
+                            this.selectedPlanet = widget.getPlanet();
+                        }
+                    }
                     break;
                 }
             }
@@ -375,12 +381,12 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
             xStarting = xOffset;
         }
         if (xLoc > x + 219 - size) {
-            xOffset = -Mth.clamp(x + 219 - size - xLoc, -size, 0);
+            xOffset = -Mth.clamp(x + 220 - size - xLoc, -size, 0); //219
             xStarting = 0;
         }
 
         yLoc = Mth.clamp(yLoc, y + 107, y + 207);
-        xLoc = Mth.clamp(xLoc, x + 10, x + 219);
+        xLoc = Mth.clamp(xLoc, x + 10, x + 220); //219
 
 //        if (xLoc < 10 - size || xLoc > 219 + size || yLoc < 107 || yLoc > 207)
 //            return;
@@ -411,9 +417,11 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
         ItemStack planetCost = this.selectedPlanet.getLightSpeedCost(this.menu.getTravelDistance(this.selectedPlanet));
 
         if (galaxyCost != null || planetCost != null) {
-            this.font.draw(poseStack, COST, x + 124, y + 42, 4210752);
             int need;
             int have;
+
+            if (!galaxyCost.isEmpty() || !planetCost.isEmpty())
+                this.font.draw(poseStack, COST, x + 124, y + 42, 4210752);
 
             int xPos;
             int yPos = 52;

@@ -40,8 +40,7 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> implements ICelestial {
     public Galaxy(ResourceKey<Level> galaxyDimension) {
         this.dimension = galaxyDimension;
 
-        //FIXME add exception for overworld…?
-        if (DIMENSIONS.containsKey(dimension)) {
+        if (DIMENSIONS.containsKey(dimension) && !dimension.equals(Level.OVERWORLD)) {
             throw new IllegalStateException("dimension: " + dimension.toString() + " already has an associated galaxy: " + DIMENSIONS.get(dimension).toString());
         }
         DIMENSIONS.put(dimension, this);
@@ -194,12 +193,12 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> implements ICelestial {
     }
 
     public static List<Galaxy> getVisibleGalaxies() {
-        ArrayList<Galaxy> unlockedGalaxies = new ArrayList<>();
+        ArrayList<Galaxy> visibleGalaxies = new ArrayList<>();
         for (Galaxy galaxy : DIMENSIONS.values()) {
             if (!galaxy.isHidden)
-                unlockedGalaxies.add(galaxy);
+                visibleGalaxies.add(galaxy);
         }
-        return unlockedGalaxies;
+        return visibleGalaxies;
     }
 
 

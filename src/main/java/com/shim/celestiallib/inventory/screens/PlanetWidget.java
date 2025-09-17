@@ -64,18 +64,19 @@ public class PlanetWidget extends GuiComponent {
                     .append(cost.getHoverName())));
         }
 
-        Player player = CelestialLib.PROXY.getPlayer();
-        ICoolDown cooldownCap = CelestialLib.getCapability(player, CLibCapabilities.COOLDOWN_CAPABILITY);
-        if (cooldownCap != null) {
-            PlanetCooldown cooldown = cooldownCap.getCooldown(planet);
-            if (cooldown != null)
-                tooltip.add(cooldown.getCooldownComponent());
-        }
-
         IUnlock travelCap = CelestialLib.getCapability(CelestialLib.PROXY.getPlayer(), CLibCapabilities.UNLOCK_CAPABILITY);
 
         if (travelCap != null) {
-            if (travelCap.isCelestialLightSpeedLocked(planet)) {
+            //only display cooldown if NOT light speed locked
+            if (!travelCap.isCelestialLightSpeedLocked(planet)) {
+                Player player = CelestialLib.PROXY.getPlayer();
+                ICoolDown cooldownCap = CelestialLib.getCapability(player, CLibCapabilities.COOLDOWN_CAPABILITY);
+                if (cooldownCap != null) {
+                    PlanetCooldown cooldown = cooldownCap.getCooldown(planet);
+                    if (cooldown != null)
+                        tooltip.add(cooldown.getCooldownComponent());
+                }
+            } else {
                 tooltip.add(new TranslatableComponent("menu.celestiallib.locked").withStyle(ChatFormatting.RED));
             }
         }

@@ -4,8 +4,6 @@ import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.capabilities.CLibCapabilities;
 import com.shim.celestiallib.api.capabilities.ISpaceFlight;
 import com.shim.celestiallib.config.CLibCommonConfig;
-import com.shim.celestiallib.packets.CLibPacketHandler;
-import com.shim.celestiallib.packets.ServerDidLightTravelPacket;
 import com.shim.celestiallib.api.world.galaxy.Galaxy;
 import com.shim.celestiallib.api.world.planet.Planet;
 import com.shim.celestiallib.world.portal.CelestialTeleporter;
@@ -23,7 +21,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkDirection;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -81,8 +78,8 @@ public class TeleportUtil {
 
     public static void displayLockedPlanetMessage(Entity entity, ResourceKey<Level> destination) {
         if (entity instanceof Player player) {
-                player.displayClientMessage(CelestialUtil.getDisplayName(destination).append(" ")
-                                .append(new TranslatableComponent("celestial.teleport.locked")), true);
+            player.displayClientMessage(CelestialUtil.getDisplayName(destination).append(" ")
+                    .append(new TranslatableComponent("celestial.teleport.locked")), true);
         }
     }
 
@@ -92,6 +89,9 @@ public class TeleportUtil {
         ChunkPos planetChunkPos;
 
         if (galaxy == null)
+            return null;
+
+        if (blockWeSee.isAir())
             return null;
 
         //check if we're in the general area of a planet
@@ -133,7 +133,7 @@ public class TeleportUtil {
                 return planet;
             }
         }
-        //…or one of its moons
+        //…or check one of its moons
         moons = PLANET_MOONS_WITH_PLANET.get(planet);
 
         if (moons != null) {
@@ -151,17 +151,17 @@ public class TeleportUtil {
     }
 
     public static void handleLightSpeedTravel(ServerPlayer player, Entity spaceVehicle, ArrayList<Entity> passengers, ResourceKey<Level> galaxy, BlockPos planetPos) {
-        TeleportUtil.teleport(spaceVehicle, passengers, galaxy, planetPos);
+        TeleportUtil.teleportInDimension(spaceVehicle, passengers, planetPos);
 
-        ArrayList<Integer> entityIds = null;
-        if (passengers != null) {
-            entityIds = new ArrayList<>();
-            for (Entity entity : passengers) {
-                entityIds.add(entity.getId());
-            }
-        }
+//        ArrayList<Integer> entityIds = null;
+//        if (passengers != null) {
+//            entityIds = new ArrayList<>();
+//            for (Entity entity : passengers) {
+//                entityIds.add(entity.getId());
+//            }
+//        }
 
-        CLibPacketHandler.INSTANCE.sendTo(new ServerDidLightTravelPacket(spaceVehicle.getId(), entityIds, planetPos), player.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
+//        CLibPacketHandler.INSTANCE.sendTo(new ServerDidLightTravelPacket(spaceVehicle.getId(), entityIds, planetPos), player.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
 
     }
 
@@ -171,13 +171,22 @@ public class TeleportUtil {
 
         if (flightCap != null) {
 
-            if (spaceVehicle.level.isClientSide()) {
-                spaceVehicle.moveTo(planetPos, 0, 0);
+            if (!spaceVehicle.level.isClientSide) {
+                ServerLevel level = (ServerLevel) spaceVehicle.getLevel();
+                level.getProfiler().push("placing");
+
+                teleportTo(planetPos, spaceVehicle, passengers);
+
+                level.getProfiler().pop();
+
+
+//            if (spaceVehicle.level.isClientSide()) {
+//                spaceVehicle.moveTo(planetPos, 0, 0);
 
                 if (passengers != null) {
                     for (Entity passenger : passengers) {
                         if (passenger != null) {
-                            passenger.moveTo(planetPos, 0, 0);
+//                        passenger.moveTo(planetPos, 0, 0);
                             passenger.startRiding(spaceVehicle);
                         }
                     }
@@ -186,9 +195,8 @@ public class TeleportUtil {
         }
     }
 
-    public static void teleport(Entity spaceVehicle, @Nullable ArrayList<Entity> passengers, ResourceKey<Level> destinationDim, BlockPos locationInPlace) {
+    public static void teleportToDimension(Entity spaceVehicle, @Nullable ArrayList<Entity> passengers, ResourceKey<Level> destinationDim, BlockPos locationInPlace) {
         if (spaceVehicle.canChangeDimensions()) {
-
 
             //get server and level
             Level entityWorld = spaceVehicle.level;
@@ -215,40 +223,34 @@ public class TeleportUtil {
 
                         teleportTo(locationInPlace, spaceVehicle, passengers);
 
-//                        spaceVehicle.moveTo(locationInPlace, 0.0F, 0.0F);
-//
-//                        if (passengers != null) {
-//                            for (Entity passenger : passengers) {
-//                                passenger.moveTo(locationInPlace, 0.0F, 0.0F);
-//                            }
-//                        }
                         level.getProfiler().pop();
                     }
 
                     Entity newSpaceVehicle = null;
-//                    if (!spaceVehicle.level.dimension().equals(destinationDim)) {
-                        //check if spaceVehicle is a player or not
-                        //because for all entities NOT players, changing dimensions returns a new instance of the entity with the same data
-                        //but you do NOT create a new instance of a player
-                        //so this is important to check
-                        if (spaceVehicle instanceof Player) {
-                            spaceVehicle.changeDimension(destinationWorld, new CelestialTeleporter(destinationWorld));
-                        } else {
-                            newSpaceVehicle = spaceVehicle.changeDimension(destinationWorld, new CelestialTeleporter(destinationWorld));
-                        }
-//                    }
+                    //check if spaceVehicle is a player or not
+                    //because for all entities NOT players, changing dimensions returns a new instance of the entity with the same data
+                    //but you do NOT create a new instance of a player
+                    //so this is important to check
+                    if (spaceVehicle instanceof Player) {
+                        spaceVehicle.changeDimension(destinationWorld, new CelestialTeleporter(destinationWorld));
+                    } else {
+                        newSpaceVehicle = spaceVehicle.changeDimension(destinationWorld, new CelestialTeleporter(destinationWorld));
+                    }
 
                     //this assumes that if the player is the spaceVehicle, that there are not additional passengers besides the player
                     if (newSpaceVehicle != null && passengers != null) {
                         //for all of our passengers…
+                        ArrayList<Entity> newPassengers = new ArrayList<>();
                         for (Entity passenger : passengers) {
                             Entity newPassenger = null;
                             if (!passenger.level.dimension().equals(destinationDim)) {
                                 //check if they're players or not to handle changing dimensions appropriately (see above)
                                 if (passenger instanceof Player) {
                                     passenger.changeDimension(destinationWorld, new CelestialTeleporter(destinationWorld));
+                                    newPassengers.add(passenger);
                                 } else {
                                     newPassenger = passenger.changeDimension(destinationWorld, new CelestialTeleporter(destinationWorld));
+                                    newPassengers.add(newPassenger);
                                 }
                             }
 
@@ -267,25 +269,58 @@ public class TeleportUtil {
         }
     }
 
+    public static void teleportInDimension(Entity spaceVehicle, @Nullable ArrayList<Entity> passengers, BlockPos locationInPlace) {
+
+        //get server and level
+        Level entityWorld = spaceVehicle.level;
+        MinecraftServer minecraftserver = entityWorld.getServer();
+        if (minecraftserver != null) {
+            ServerLevel destinationWorld = minecraftserver.getLevel(spaceVehicle.level.dimension());
+            if (destinationWorld != null) {
+
+                //adjust y height to galaxy y height
+                locationInPlace = new BlockPos(locationInPlace.getX(), Galaxy.getGalaxy(spaceVehicle.level.dimension()).getYHeight(), locationInPlace.getZ());
+
+                //teleport all entities
+                if (!entityWorld.isClientSide) {
+                    ServerLevel level = (ServerLevel) spaceVehicle.getLevel();
+                    level.getProfiler().push("placing");
+
+                    teleportTo(locationInPlace, spaceVehicle, passengers);
+
+                    level.getProfiler().pop();
+                }
+
+                //for all of our passengers…
+                for (Entity passenger : passengers) {
+                    //…start riding the vehicle again
+                    if (!entityWorld.isClientSide) {
+                        if (!passenger.isPassenger())
+                            passenger.startRiding(spaceVehicle);
+                    }
+                }
+            }
+        }
+    }
+
     public static void teleportTo(BlockPos pos, Entity entity, ArrayList<Entity> passengers) {
         if (entity.level instanceof ServerLevel) {
             entity.moveTo(pos.getX(), pos.getY(), pos.getZ(), entity.getYRot(), entity.getXRot());
 
             if (passengers != null) {
+                CelestialLib.LOGGER.debug("position rider passengers ! null");
                 passengers.forEach((e) -> {
-                    for (Entity passenger : e.getPassengers()) {
-                        positionRider(entity, passenger, Entity::moveTo);
-                    }
+                    CelestialLib.LOGGER.debug("positionRider, e: " + e + " (1/2)");
+                    positionRider(entity, e, Entity::moveTo);
                 });
             }
-
         }
     }
 
-    private static void positionRider(Entity entity, Entity rider, Entity.MoveFunction moveFunction) {
-        if (entity.hasPassenger(rider)) {
-            double d0 = entity.getY() + entity.getPassengersRidingOffset() + rider.getMyRidingOffset();
-            moveFunction.accept(rider, entity.getX(), d0, entity.getZ());
+    private static void positionRider(Entity vehicle, Entity rider, Entity.MoveFunction moveFunction) {
+        if (vehicle.hasPassenger(rider)) {
+            double d0 = vehicle.getY() + vehicle.getPassengersRidingOffset() + rider.getMyRidingOffset();
+            moveFunction.accept(rider, vehicle.getX(), d0, vehicle.getZ());
         }
     }
 
@@ -301,8 +336,7 @@ public class TeleportUtil {
             } else if (!CLibCommonConfig.DEFAULT_OVERWORLD_GALAXY.get().isEmpty()) {
                 //default galaxy has been set
                 return CelestialUtil.getDimensionFromString(CLibCommonConfig.DEFAULT_OVERWORLD_GALAXY.get());
-            }
-            else { //one of these not set, so player will need to choose a destination directly
+            } else { //one of these not set, so player will need to choose a destination directly
                 return null;
             }
         } else { //not the overworld

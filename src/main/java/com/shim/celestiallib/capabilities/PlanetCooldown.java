@@ -20,7 +20,9 @@ public class PlanetCooldown {
         Galaxy galaxy = this.planet.getGalaxy();
         if (!galaxy.areCooldownsEnabled())
             return;
-        this.currentCooldown = galaxy.getMaxCooldown().get();
+        if (!planet.areCooldownsEnabled())
+            return;
+        this.currentCooldown = 0;// = galaxy.getMaxCooldown().get();
         this.numTimesReset = 0;
     }
 
