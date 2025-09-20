@@ -62,7 +62,6 @@ public class CelestialUtil {
 
     public static void setDimensionLocation(ResourceKey<Level> dimension, AbstractCelestialTeleportData data) {
         DIMENSION_LOCATION.put(dimension, data);
-        CelestialLib.LOGGER.debug("dimension: " + dimension + ", data: " + data + ", map: " + DIMENSION_LOCATION.get(dimension));
     }
 
     public static void clearDimensionLocations() {
@@ -83,6 +82,10 @@ public class CelestialUtil {
 
     protected static final Map<ResourceKey<Level>, Vec3> PLANET_LOCATIONS = new HashMap<>();
 
+    public static Map<ResourceKey<Level>, Vec3> getPlanetLocData() {
+        return new HashMap<>(PLANET_LOCATIONS);
+    }
+
     public static Vec3 getPlanetLocation(ResourceKey<Level> dimension) {
         return PLANET_LOCATIONS.get(dimension);
     }
@@ -97,6 +100,12 @@ public class CelestialUtil {
 
     public static void setPlanetLocation(ResourceKey<Level> dimension, Vec3 data) {
         PLANET_LOCATIONS.put(dimension, data);
+    }
+
+    public static void syncPlanetLocData(Map<ResourceKey<Level>, Vec3> data) {
+        for (ResourceKey<Level> dimension : data.keySet()) {
+            setPlanetLocation(dimension, data.get(dimension));
+        }
     }
 
     public static void clearPlanetLocations() {
@@ -162,6 +171,15 @@ public class CelestialUtil {
 
     public static Map<ResourceLocation, List<ICelestial>> LOCKED_CELESTIALS = new HashMap<>();
     public static Map<ResourceLocation, List<ICelestial>> LOCKED_CELESTIALS_LIGHT_SPEED = new HashMap<>();
+    public static Map<ICelestial, Boolean> LIGHT_SPEED_HIDDEN = new HashMap<>();
+
+    public static Map<ResourceLocation, List<ICelestial>> getTravelLockedCelestialData() {
+        return new HashMap<>(LOCKED_CELESTIALS);
+    }
+
+    public static Map<ResourceLocation, List<ICelestial>> getLightSpeedLockedCelestialData() {
+        return new HashMap<>(LOCKED_CELESTIALS_LIGHT_SPEED);
+    }
 
     public static void clearLockedCelestials() {
         LOCKED_CELESTIALS.clear();
@@ -190,6 +208,8 @@ public class CelestialUtil {
         } else {
             LOCKED_CELESTIALS_LIGHT_SPEED.put(advancement, Collections.singletonList(celestial));
         }
+
+        LIGHT_SPEED_HIDDEN.put(celestial, celestial.isLightSpeedHidden());
     }
 
     public static List<ICelestial> getLockedCelestials(ResourceLocation advancement) {
@@ -198,5 +218,28 @@ public class CelestialUtil {
 
     public static List<ICelestial> getLockedLightSpeedCelestials(ResourceLocation advancement) {
         return LOCKED_CELESTIALS_LIGHT_SPEED.getOrDefault(advancement, null);
+    }
+
+    public static Map<ICelestial, Boolean> getLightSpeedHiddenData() {
+        return new HashMap<>(LIGHT_SPEED_HIDDEN);
+    }
+
+    public static void syncLockedCelestials(Map<ResourceLocation, List<ICelestial>> travelLockedData, Map<ResourceLocation,
+            List<ICelestial>> lightSpeedLockedData, Map<ICelestial, Boolean> lightSpeedHidden) {
+        for (ResourceLocation condition : travelLockedData.keySet()) {
+//            CelestialLib.LOGGER.debug("condition: " + condition + ", celestials: " + travelLockedData.get(condition));
+            LOCKED_CELESTIALS.put(condition, travelLockedData.get(condition));
+            for (ICelestial celestial: travelLockedData.get(condition)) {
+                celestial.setTravelLocked();
+            }
+        }
+        for (ResourceLocation condition : lightSpeedLockedData.keySet()) {
+//            CelestialLib.LOGGER.debug("ls condition: " + condition + ", ls celestials: " + lightSpeedLockedData.get(condition));
+            LOCKED_CELESTIALS_LIGHT_SPEED.put(condition, lightSpeedLockedData.get(condition));
+            for (ICelestial celestial: lightSpeedLockedData.get(condition)) {
+                celestial.setLightSpeedLockedAndMaybeHidden(lightSpeedHidden.get(celestial));
+                LIGHT_SPEED_HIDDEN.put(celestial, lightSpeedHidden.get(celestial));
+            }
+        }
     }
 }

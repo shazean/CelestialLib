@@ -99,7 +99,6 @@ public class PlanetStructureTravel {
 
         public PlanetStructureTravel build(ResourceLocation resourceLocation) {
             if (!this.canBuild((loc) -> {
-//                CelestialExploration.LOGGER.debug("loc: " + loc);
                 return null;
             })) {
                 throw new IllegalStateException("Tried to build incomplete teleport!");

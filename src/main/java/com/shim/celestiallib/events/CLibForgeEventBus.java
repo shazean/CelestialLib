@@ -29,6 +29,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingEquipmentChangeEvent;
@@ -185,11 +186,6 @@ public class CLibForgeEventBus {
         //at the end of the tick, decrease light speed travel cooldowns, if applicable to the player
         PlanetCoolDownHandler coolDownCap = (PlanetCoolDownHandler) CelestialLib.getCapability(player, CLibCapabilities.COOLDOWN_CAPABILITY);
         if (coolDownCap != null) {
-//            CelestialLib.LOGGER.debug("cooldownCap not null!");
-
-//            for (Planet planet : coolDownCap.COOLDOWNS.keySet()) {
-//                CelestialLib.LOGGER.debug("planet: " + planet.getDimension().location() + ", cooldown: " + coolDownCap.COOLDOWNS.get(planet).getCurrentCooldown());
-//            }
             if (event.phase.equals(TickEvent.Phase.END)) {
                 coolDownCap.decrementCooldowns();
             }
@@ -275,7 +271,6 @@ public class CLibForgeEventBus {
                         }
                     }
                 }
-
             }
         }
 //        if (CelestialCommonConfig.STORMS.get()) {
@@ -299,7 +294,6 @@ public class CLibForgeEventBus {
 
         if (travelCap != null) {
 
-//            CelestialLib.LOGGER.debug("travel cap isn't null 1/5");
             List<ICelestial> lockedCelestials = CelestialUtil.getLockedCelestials(event.getAdvancement().getId());
             if (lockedCelestials != null) {
 
@@ -313,22 +307,13 @@ public class CLibForgeEventBus {
 
             lockedCelestials = CelestialUtil.getLockedLightSpeedCelestials(event.getAdvancement().getId());
             if (lockedCelestials != null) {
-                CelestialLib.LOGGER.debug("locked light speed celestials aren't null 2/5");
 
                 for (ICelestial celestial : lockedCelestials) {
-                    CelestialLib.LOGGER.debug("celestial: " + celestial + " 3/5");
                     travelCap.unlockCelestialLightSpeed(celestial);
 
-                    CelestialLib.LOGGER.debug("on client side: " + event.getPlayer().level.isClientSide());
                     if (player instanceof ServerPlayer serverPlayer) {
-                        CelestialLib.LOGGER.debug("is server player, sending packet to client…");
-//                            CLibPacketHandler.INSTANCE.sendToServer(new ServerUnlockedCelestialPacket(player.getId(), celestial.getDimension(), true, celestial.isGalaxy()));
-
                         final PacketDistributor.PacketTarget targetPlayer = PacketDistributor.PLAYER.with(() -> serverPlayer);
                         CLibPacketHandler.INSTANCE.send(targetPlayer, new ServerUnlockedCelestialPacket(player.getId(), celestial.getDimension(), true, celestial.isGalaxy()));
-
-//                            CLibPacketHandler.INSTANCE.sendTo(new ServerUnlockedCelestialPacket(player.getId(), celestial.getDimension(), true, celestial.isGalaxy()),
-//                                    serverPlayer.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
 
                     }
                 }
@@ -402,6 +387,15 @@ public class CLibForgeEventBus {
 
                 event.getOriginal().invalidateCaps();
             }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onDatapackSync(final OnDatapackSyncEvent event) {
+        for (ServerPlayer player : event.getPlayer() == null ? event.getPlayerList().getPlayers() : List.of(event.getPlayer())) {
+            final PacketDistributor.PacketTarget targetPlayer = PacketDistributor.PLAYER.with(() -> player);
+            CLibPacketHandler.INSTANCE.send(targetPlayer, new SyncPlanetLocPacket());
+            CLibPacketHandler.INSTANCE.send(targetPlayer, new SyncMasterLockedCelestialsPacket());
         }
     }
 

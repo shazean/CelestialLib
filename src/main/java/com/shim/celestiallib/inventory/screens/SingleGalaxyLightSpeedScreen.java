@@ -15,7 +15,6 @@ import com.shim.celestiallib.api.world.planet.Planet;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -24,7 +23,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -187,7 +185,7 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
         for (Planet planet : Planet.DIMENSIONS.values()) {
 
             if (CelestialUtil.getPlanetLocation(planet) == null) continue;
-            if (planet.isHidden()) continue;
+            if (planet.isLightSpeedHidden()) continue;
             if (planet.isMoon()) continue;
 
             if (!planetWidgets.containsKey(planet)) {
@@ -204,7 +202,7 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
 
         RenderSystem.setShaderTexture(0, widget.getTexture());
 
-        ChunkPos planetLoc = CelestialUtil.getPlanetChunkCoordinates(planet.getDimension()); //CelestialUtil.getPlanetLocation(planet.getDimension());
+        ChunkPos planetLoc = CelestialUtil.getPlanetChunkCoordinates(planet.getDimension());
         if (planetLoc == null) {
             return;
         }
@@ -220,9 +218,6 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
         int xLoc = x + 10 + 105 - (size / 2) + xMovement + (int) ((planetLoc.x * 1.5)  / scale);
         int yLoc = y + 10 + 65 - (size / 2) + yMovement + (int) ((planetLoc.z * 1.5)  / scale);
 
-//        CelestialLib.LOGGER.debug("planet: " + planet.location() + ", xLoc: " + xLoc + ", yLoc: " + yLoc);
-
-//        CelestialLib.LOGGER.debug("yLoc: " + yLoc + ", galaxyY: " + galaxyY + ", yDrag: " + yDrag + ", yMovement: " + yMovement);
         int yStarting = 0;
         int xStarting = 0;
 
@@ -247,8 +242,6 @@ public class SingleGalaxyLightSpeedScreen extends AbstractContainerScreen<Single
         yLoc = Mth.clamp(yLoc, y + 10, y + 140); //130
         xLoc = Mth.clamp(xLoc, x + 10, x + 220); //219
 
-//        if (xLoc < 10 - size || xLoc > 219 + size || yLoc < 10 || yLoc > 130)
-//            return;
 
         widget.setPos(xLoc - x, yLoc - y);
         widget.setDisplaySize(size - xOffset, size - yOffset);

@@ -43,8 +43,6 @@ public class TeleportUtil {
 
     private static final Map<ResourceKey<Level>, List<ResourceKey<Level>>> PLANET_MOONS_WITH_PLANET = new HashMap<>();
 
-    private static final List<ResourceKey<Level>> PLANET_MOONS = new ArrayList<>();
-
     public static void addMoons(ResourceKey<Level> dimension, List<ResourceKey<Level>> moons) {
         PLANET_MOONS_WITH_PLANET.put(dimension, moons);
     }
@@ -97,7 +95,7 @@ public class TeleportUtil {
         //check if we're in the general area of a planet
         for (ResourceKey<Level> loc : CelestialUtil.getPlanetLocations().keySet()) {
             //limit to only planets and not any of the moons
-            if (!PLANET_MOONS.contains(loc)) {
+            if (!Planet.getPlanet(loc).isMoon()) {
                 Planet planetToCheck = Planet.getPlanet(loc);
 
                 if (planetToCheck == null) {
@@ -308,9 +306,7 @@ public class TeleportUtil {
             entity.moveTo(pos.getX(), pos.getY(), pos.getZ(), entity.getYRot(), entity.getXRot());
 
             if (passengers != null) {
-                CelestialLib.LOGGER.debug("position rider passengers ! null");
                 passengers.forEach((e) -> {
-                    CelestialLib.LOGGER.debug("positionRider, e: " + e + " (1/2)");
                     positionRider(entity, e, Entity::moveTo);
                 });
             }

@@ -39,7 +39,6 @@ public class CLibSpaceTravelManager extends SimpleJsonResourceReloadListener {
 
 //            String dimName = GsonHelper.getAsString(json, "dimension");
             ResourceKey<Level> dimension = ResourceKey.create(Registry.DIMENSION_REGISTRY, dimensionPath);
-            CelestialLib.LOGGER.debug("dimensionPath: " + dimensionPath + ", dimension: " + dimension);
 
             String galaxyName = GsonHelper.getAsString(json, "galaxy");
             Galaxy galaxy = CelestialUtil.getGalaxyFromString(galaxyName);

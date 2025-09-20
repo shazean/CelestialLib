@@ -188,7 +188,6 @@ tasks.named('processResources', ProcessResources).configure {
     }
 }
 
-
 mixin {
     add sourceSets.main, "celestiallib.mixin-refmap.json"
     config "celestiallib.mixins.json"

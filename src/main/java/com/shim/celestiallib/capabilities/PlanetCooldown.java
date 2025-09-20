@@ -62,7 +62,6 @@ public class PlanetCooldown {
     public void decrementCooldown() {
         if (this.currentCooldown > 0) {
             this.currentCooldown--;
-//                CelestialLib.LOGGER.debug("planet: " + planet.getDimension().location().toString() + ", cooldown: " + this.currentCooldown + " m:" + ((this.currentCooldown / 20) / 60) + ", s: " + ((this.currentCooldown / 20) % 60));
         }
     }
 
@@ -75,8 +74,6 @@ public class PlanetCooldown {
         seconds = (this.currentCooldown / 20) % 60;
 
         cooldown = minutes + "m " + seconds + "s";
-//            CelestialLib.LOGGER.debug("planet: " + planet.getDimension().location().toString() + ", cooldown: " + this.currentCooldown + " m:" + ((this.currentCooldown / 20) / 60) + ", minutes: " + minutes +
-//                    ", s: " + ((this.currentCooldown / 20) % 60) + ", seconds: " + seconds);
 
         return cooldown;
     }

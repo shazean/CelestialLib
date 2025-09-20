@@ -32,9 +32,6 @@ public class CLibPacketHandler {
         INSTANCE.registerMessage(i++, DoLightTravelPacket.class, DoLightTravelPacket::encoder,
                 DoLightTravelPacket::decoder, DoLightTravelPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
 
-        INSTANCE.registerMessage(i++, ServerDidLightTravelPacket.class, ServerDidLightTravelPacket::encoder,
-                ServerDidLightTravelPacket::decoder, ServerDidLightTravelPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-
         INSTANCE.registerMessage(i++, CooldownDataPacket.class, CooldownDataPacket::encoder,
                 CooldownDataPacket::decoder, CooldownDataPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
 
@@ -44,8 +41,14 @@ public class CLibPacketHandler {
         INSTANCE.registerMessage(i++, ServerUnlockedCelestialPacket.class, ServerUnlockedCelestialPacket::encoder,
                 ServerUnlockedCelestialPacket::decoder, ServerUnlockedCelestialPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
 
-//        INSTANCE.registerMessage(i++, ServerUnlockedCelestialPacket.class, ServerUnlockedCelestialPacket::encoder,
-//                ServerUnlockedCelestialPacket::decoder, ServerUnlockedCelestialPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        INSTANCE.registerMessage(i++, SyncPlanetLocPacket.class, SyncPlanetLocPacket::encoder,
+                SyncPlanetLocPacket::decoder, SyncPlanetLocPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+
+        INSTANCE.registerMessage(i++, SyncMasterLockedCelestialsPacket.class, SyncMasterLockedCelestialsPacket::encoder,
+                SyncMasterLockedCelestialsPacket::decoder, SyncMasterLockedCelestialsPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+
+        INSTANCE.registerMessage(i++, SyncPlayerLockedCelestialsPacket.class, SyncPlayerLockedCelestialsPacket::encoder,
+                SyncPlayerLockedCelestialsPacket::decoder, SyncPlayerLockedCelestialsPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
 
 
     }

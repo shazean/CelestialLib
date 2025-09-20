@@ -60,7 +60,6 @@ public class GalaxyBackground {
 
         public GalaxyBackground build(ResourceLocation resourceLocation) {
             if (!this.canBuild((loc) -> {
-//                CelestialLib.LOGGER.debug("loc: " + loc);
                 return null;
             })) {
                 throw new IllegalStateException("Tried to build incomplete galaxy background!");

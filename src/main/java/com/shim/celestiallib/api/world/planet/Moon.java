@@ -1,5 +1,6 @@
 package com.shim.celestiallib.api.world.planet;
 
+import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.util.TeleportUtil;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
@@ -20,5 +21,10 @@ public class Moon extends Planet {
 
     public Planet getPlanetOrbited() {
         return this.planetOrbited;
+    }
+
+    @Override
+    public String toString() {
+        return "[" + CelestialLib.MODID + ":moon / " + this.location() + "]";
     }
 }

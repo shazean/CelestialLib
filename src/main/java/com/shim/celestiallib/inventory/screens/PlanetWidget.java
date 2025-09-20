@@ -105,7 +105,6 @@ public class PlanetWidget extends GuiComponent {
         return this.width;
     }
 
-
     public void setPos(int x, int y) {
         this.x = x;
         this.y = y;
@@ -114,6 +113,5 @@ public class PlanetWidget extends GuiComponent {
     public void setDisplaySize(int width, int height) {
         this.width = width;
         this.height = height;
-
     }
 }

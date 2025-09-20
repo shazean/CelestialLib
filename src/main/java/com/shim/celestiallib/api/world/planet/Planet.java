@@ -1,5 +1,6 @@
 package com.shim.celestiallib.api.world.planet;
 
+import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.api.effects.GravityEffect;
 import com.shim.celestiallib.api.world.galaxy.Galaxy;
 import com.shim.celestiallib.world.celestials.ICelestial;
@@ -96,7 +97,7 @@ public class Planet extends ForgeRegistryEntry<Planet> implements ICelestial {
         return this.isLightSpeedLocked;
     }
 
-    public boolean isHidden() {
+    public boolean isLightSpeedHidden() {
         return this.isHidden;
     }
 
@@ -134,5 +135,10 @@ public class Planet extends ForgeRegistryEntry<Planet> implements ICelestial {
     @Override
     public boolean isGalaxy() {
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return "[" + CelestialLib.MODID + ":planet / " + this.location() + "]";
     }
 }

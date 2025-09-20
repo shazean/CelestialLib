@@ -97,7 +97,7 @@ public class DimensionTypeGen {
         int minY;
         int height;
         float coordinateScale;
-        int fixedTime;
+        int fixedTime = -1;
 
         TagKey<Block> infiniburn;
         ResourceLocation effects;
@@ -184,12 +184,11 @@ public class DimensionTypeGen {
         }
 
         public boolean canBuild(Function<ResourceLocation, DimensionTypeGen> p_138393_) {
-            return true;// galaxy != null && texture != null;
+            return true;
         }
 
         public DimensionTypeGen build(ResourceLocation resourceLocation) {
             if (!this.canBuild((loc) -> {
-//                CelestialLib.LOGGER.debug("loc: " + loc);
                 return null;
             })) {
                 throw new IllegalStateException("Tried to build incomplete dimension type!");
@@ -228,7 +227,8 @@ public class DimensionTypeGen {
             json.addProperty("min_y", this.minY);
             json.addProperty("height", this.height);
             json.addProperty("coordinate_scale", this.coordinateScale);
-            json.addProperty("fixed_time", this.fixedTime);
+            if (this.fixedTime != -1)
+                json.addProperty("fixed_time", this.fixedTime);
 
             json.addProperty("infiniburn", "#" + this.infiniburn.location());
 

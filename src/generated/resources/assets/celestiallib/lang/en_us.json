@@ -9,6 +9,7 @@
   "celestial.teleport.locked": "is locked",
   "celestial.teleport.message_1": "Teleporting to ",
   "celestial.teleport.message_2": " in\u2026 ",
+  "celestial.teleport.teleporting": "Teleporting!",
   "effect.celestiallib.extra_low_gravity": "Extra Low Gravity",
   "effect.celestiallib.high_gravity": "High Gravity",
   "effect.celestiallib.low_gravity": "Low Gravity",

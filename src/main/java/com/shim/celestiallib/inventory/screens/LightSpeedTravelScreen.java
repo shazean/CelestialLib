@@ -5,7 +5,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.capabilities.CLibCapabilities;
-import com.shim.celestiallib.capabilities.ICoolDown;
 import com.shim.celestiallib.capabilities.IUnlock;
 import com.shim.celestiallib.capabilities.PlanetCoolDownHandler;
 import com.shim.celestiallib.inventory.menus.LightSpeedTravelMenu;
@@ -15,18 +14,14 @@ import com.shim.celestiallib.api.world.planet.Planet;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.AirItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.block.AirBlock;
-import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -238,7 +233,7 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
         for (Galaxy galaxy : Galaxy.getAlphabetizedList()) {
 
             boolean locked = travelCap.isCelestialLightSpeedLocked(galaxy);
-            boolean hidden = galaxy.isHidden();
+            boolean hidden = galaxy.isLightSpeedHidden();
             j++;
 
             if (hidden) continue;
@@ -327,7 +322,7 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
 
             if (CelestialUtil.getPlanetLocation(planet) == null) continue;
             if (!planet.getGalaxy().equals(this.selectedGalaxy)) continue;
-            if (planet.isHidden()) continue;
+            if (planet.isLightSpeedHidden()) continue;
             if (planet.isMoon()) continue;
 
             if (!planetWidgets.containsKey(planet)) {
@@ -361,9 +356,6 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
         int xLoc = x + 10 + 105 - (size / 2) + xMovement + (int) ((planetLoc.x * 1.5)  / scale);
         int yLoc = y + 107 + 50 - (size / 2) + yMovement + (int) ((planetLoc.z * 1.5) / scale);
 
-//        CelestialLib.LOGGER.debug("planet: " + planet + ", xLoc: " + xLoc + ", yLoc: " + yLoc);
-
-//        CelestialLib.LOGGER.debug("yLoc: " + yLoc + ", galaxyY: " + galaxyY + ", yDrag: " + yDrag + ", yMovement: " + yMovement);
         int yStarting = 0;
         int xStarting = 0;
 
@@ -387,9 +379,6 @@ public class LightSpeedTravelScreen extends AbstractContainerScreen<LightSpeedTr
 
         yLoc = Mth.clamp(yLoc, y + 107, y + 207);
         xLoc = Mth.clamp(xLoc, x + 10, x + 220); //219
-
-//        if (xLoc < 10 - size || xLoc > 219 + size || yLoc < 107 || yLoc > 207)
-//            return;
 
         widget.setPos(xLoc - x, yLoc - y);
         widget.setDisplaySize(size - xOffset, size - yOffset);

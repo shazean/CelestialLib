@@ -9,8 +9,6 @@ import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkEvent;
@@ -55,61 +53,19 @@ public class ServerUnlockedCelestialPacket {
 
                 if (cap != null) {
 
-                    CelestialLib.LOGGER.debug("in packet, capability not null");
-
-
                     if (message.isLightSpeed) {
                         if (message.isGalaxy) {
                             cap.unlockCelestialLightSpeed(Galaxy.getGalaxy(message.dimension));
-                            CelestialLib.LOGGER.debug("in packet, checking unlocked for galaxy " + message.dimension + ": " + cap.isCelestialLightSpeedLocked(Galaxy.getGalaxy(message.dimension)));
                         } else {
                             cap.unlockCelestialLightSpeed(Planet.getPlanet(message.dimension));
-                            CelestialLib.LOGGER.debug("in packet, checking unlocked for planet " + message.dimension + ": " + cap.isCelestialLightSpeedLocked(Planet.getPlanet(message.dimension)));
                         }
                     } else {
-                        CelestialLib.LOGGER.debug("in packet, not light speed");
-
                         if (message.isGalaxy)
                             cap.unlockCelestial(Galaxy.getGalaxy(message.dimension));
                         else
                             cap.unlockCelestial(Planet.getPlanet(message.dimension));
                     }
                 }
-
-
-//            ServerPlayer serverPlayer = context.getSender();
-//
-//            if (serverPlayer != null) {
-//
-//                CelestialLib.LOGGER.debug("packet handling?");
-//
-//                Entity player = serverPlayer.level.getEntity(message.playerId);
-//
-//                IUnlock cap = CelestialLib.getCapability(player, CLibCapabilities.UNLOCK_CAPABILITY);
-//
-//                if (cap != null) {
-//
-//                    CelestialLib.LOGGER.debug("in packet, capability not null");
-//
-//
-//                    if (message.isLightSpeed) {
-//                        if (message.isGalaxy) {
-//                            cap.unlockCelestialLightSpeed(Galaxy.getGalaxy(message.dimension));
-//                            CelestialLib.LOGGER.debug("in packet, checking unlocked for galaxy " + message.dimension + ": " + cap.isCelestialLightSpeedLocked(Galaxy.getGalaxy(message.dimension)));
-//                        } else {
-//                            cap.unlockCelestialLightSpeed(Planet.getPlanet(message.dimension));
-//                            CelestialLib.LOGGER.debug("in packet, checking unlocked for planet " + message.dimension + ": " + cap.isCelestialLightSpeedLocked(Planet.getPlanet(message.dimension)));
-//                        }
-//                    } else {
-//                        CelestialLib.LOGGER.debug("in packet, not light speed");
-//
-//                        if (message.isGalaxy)
-//                            cap.unlockCelestial(Galaxy.getGalaxy(message.dimension));
-//                        else
-//                            cap.unlockCelestial(Planet.getPlanet(message.dimension));
-//                    }
-//                }
-//            }
         });
         context.setPacketHandled(true);
     }

@@ -89,9 +89,10 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> implements ICelestial {
     /**
      * Set a gravity value. If unset, galaxy will have {@link CLibEffects#LOW_GRAVITY LOW_GRAVITY}.
      * See {@link CLibEffects} or create your own.
+     * Set this to null for standard vanilla gravity
      * Note that {@link com.shim.celestiallib.config.CLibCommonConfig#GRAVITY_EFFECTS GRAVITY_EFFECTS config} will need to be set to true
      */
-    public Galaxy gravity(Supplier<GravityEffect> gravity) {
+    public Galaxy gravity(@Nullable Supplier<GravityEffect> gravity) {
         this.gravity = gravity;
         return this;
     }
@@ -152,7 +153,7 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> implements ICelestial {
         return this.isLightSpeedLocked;
     }
 
-    public boolean isHidden() {
+    public boolean isLightSpeedHidden() {
         return this.isHidden;
     }
 
@@ -230,5 +231,10 @@ public class Galaxy extends ForgeRegistryEntry<Galaxy> implements ICelestial {
         if (gravity != null)
             return this.gravity.get();
         else return null;
+    }
+
+    @Override
+    public String toString() {
+        return "[" + CelestialLib.MODID + ":galaxy / " + this.location() + "]";
     }
 }

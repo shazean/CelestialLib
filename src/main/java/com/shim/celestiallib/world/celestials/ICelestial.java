@@ -11,6 +11,7 @@ public interface ICelestial {
     void setLightSpeedLockedAndMaybeHidden(boolean isHidden);
     boolean isTravelLocked();
     boolean isLightSpeedLocked();
+    boolean isLightSpeedHidden();
     ResourceKey<Level> getDimension();
     boolean isGalaxy();
     GravityEffect getGravity();

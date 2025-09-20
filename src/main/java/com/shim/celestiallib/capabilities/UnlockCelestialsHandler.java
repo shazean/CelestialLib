@@ -2,14 +2,12 @@ package com.shim.celestiallib.capabilities;
 
 import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.api.world.galaxy.Galaxy;
-import com.shim.celestiallib.api.world.planet.Planet;
 import com.shim.celestiallib.packets.CLibPacketHandler;
 import com.shim.celestiallib.packets.CooldownDataPacket;
-import com.shim.celestiallib.packets.ServerDidLightTravelPacket;
 import com.shim.celestiallib.packets.ServerUnlockedCelestialPacket;
+import com.shim.celestiallib.packets.SyncPlayerLockedCelestialsPacket;
 import com.shim.celestiallib.util.CelestialUtil;
 import com.shim.celestiallib.world.celestials.ICelestial;
-import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -41,6 +39,8 @@ public class UnlockCelestialsHandler implements IUnlock {
         if (!LOCKED_LIGHT_SPEED_CELESTIALS.containsKey(celestial))
             LOCKED_LIGHT_SPEED_CELESTIALS.put(celestial, celestial.isLightSpeedLocked());
 
+//        CelestialLib.LOGGER.debug("celestial: " + celestial + " is ls locked: " + LOCKED_LIGHT_SPEED_CELESTIALS.get(celestial) + "; from object: " + celestial.isLightSpeedLocked() + "; master: " + CelestialUtil.isCelestialLSLocked(celestial));
+
         return LOCKED_LIGHT_SPEED_CELESTIALS.get(celestial);
     }
 
@@ -55,12 +55,15 @@ public class UnlockCelestialsHandler implements IUnlock {
             IUnlock cap = CelestialLib.getCapability(serverPlayer, CLibCapabilities.UNLOCK_CAPABILITY);
 
             if (cap != null) {
-                for (ICelestial celestial : LOCKED_CELESTIALS.keySet())
-                    CLibPacketHandler.INSTANCE.sendTo(new ServerUnlockedCelestialPacket(player.getId(), celestial.getDimension(), false, celestial.isGalaxy()), serverPlayer.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
+//                for (ICelestial celestial : LOCKED_CELESTIALS.keySet())
+                    PacketDistributor.PacketTarget targetPlayer = PacketDistributor.PLAYER.with(() -> serverPlayer);
+                    CLibPacketHandler.INSTANCE.send(targetPlayer, new SyncPlayerLockedCelestialsPacket(serverPlayer.getId(), cap.getData()));
 
-                for (ICelestial celestial : LOCKED_LIGHT_SPEED_CELESTIALS.keySet())
-                    CLibPacketHandler.INSTANCE.sendTo(new ServerUnlockedCelestialPacket(player.getId(), celestial.getDimension(), true, celestial.isGalaxy()), serverPlayer.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
+//                    CLibPacketHandler.INSTANCE.sendTo(new ServerUnlockedCelestialPacket(player.getId(), celestial.getDimension(), false, celestial.isGalaxy()), serverPlayer.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
 
+//                for (ICelestial celestial : LOCKED_LIGHT_SPEED_CELESTIALS.keySet())
+//                    CLibPacketHandler.INSTANCE.sendTo(new ServerUnlockedCelestialPacket(player.getId(), celestial.getDimension(), true, celestial.isGalaxy()), serverPlayer.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
+//
             }
         }
     }
@@ -90,8 +93,6 @@ public class UnlockCelestialsHandler implements IUnlock {
             nbt.putString("light_speed_celestial_" + i + "_type", type);
             nbt.putString("light_speed_celestial_" + i, celestial.getDimension().location().toString());
             nbt.putBoolean("light_speed_celestial_" + i + "_is_locked", LOCKED_LIGHT_SPEED_CELESTIALS.get(celestial));
-
-            CelestialLib.LOGGER.debug("saving: type: " + type + " dim: " + celestial.getDimension().location().toString() + " locked: " + LOCKED_LIGHT_SPEED_CELESTIALS.get(celestial) + " i: " + i);
 
             i++;
         }
@@ -136,9 +137,6 @@ public class UnlockCelestialsHandler implements IUnlock {
                 boolean isLocked = nbt.getBoolean("light_speed_celestial_" + i + "_is_locked");
                 if (celestial != null) {
                     LOCKED_LIGHT_SPEED_CELESTIALS.put(celestial, isLocked);
-
-                    CelestialLib.LOGGER.debug("loading: type: " + type + " dim: " + celestial.getDimension().location().toString() + " locked: " + isLocked + " i: " + i);
-
 
                 }
             }
