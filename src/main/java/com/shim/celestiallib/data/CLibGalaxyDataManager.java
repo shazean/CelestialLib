@@ -35,7 +35,7 @@ public class CLibGalaxyDataManager extends SimpleJsonResourceReloadListener {
 //            ResourceKey<Level> dimension = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(dimName));
             Galaxy galaxy = CelestialUtil.getGalaxyFromResourceLocation(dimensionPath);
 
-            int scale = GsonHelper.getAsInt(json, "scale_ratio", 1);
+            int scale = GsonHelper.getAsInt(json, "scale_ratio", 10);
 
             ItemStack cost = null;
             boolean lightSpeedLocked = false;

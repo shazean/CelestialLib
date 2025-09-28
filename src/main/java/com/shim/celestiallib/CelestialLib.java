@@ -2,6 +2,7 @@ package com.shim.celestiallib;
 
 import com.mojang.logging.LogUtils;
 import com.shim.celestiallib.capabilities.CLibCapabilities;
+import com.shim.celestiallib.config.CLibCommonConfig;
 import com.shim.celestiallib.data.*;
 import com.shim.celestiallib.api.effects.CLibEffects;
 import com.shim.celestiallib.events.CLibCommonEventSetup;
@@ -18,7 +19,9 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 
@@ -45,6 +48,8 @@ public class CelestialLib {
         modEventBus.addListener(CLibCapabilities::registerCapabilities);
 
         MinecraftForge.EVENT_BUS.addGenericListener(Entity.class, CLibCapabilities::attachEntityCapabilities);
+
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, CLibCommonConfig.SPEC, "celestiallib-common.toml");
 
         MinecraftForge.EVENT_BUS.addListener(this::reloadResources);
 

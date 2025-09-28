@@ -14,7 +14,7 @@ public abstract class BaseItemModels extends ItemModelProvider {
         super(generator, modid, existingFileHelper);
     }
 
-    private String name(ItemLike block) {
+    protected String name(ItemLike block) {
         return block.asItem().getRegistryName().getPath();
     }
 

@@ -32,8 +32,6 @@ public class Planet extends ForgeRegistryEntry<Planet> implements ICelestial {
     public static final Map<ResourceKey<Level>, Planet> DIMENSIONS = new HashMap<>();
     private boolean cooldownsEnabled = true;
 
-    public static ResourceLocation advancementUnlock = new ResourceLocation("story/upgrade_tools");
-
     public Planet(ResourceKey<Level> dimension, Galaxy galaxy) {
         this.dimension = dimension;
         this.galaxy = galaxy;
@@ -57,8 +55,9 @@ public class Planet extends ForgeRegistryEntry<Planet> implements ICelestial {
         this.isHidden = isHidden;
     }
 
-    public void disableCooldowns() {
+    public Planet disableCooldowns() {
         this.cooldownsEnabled = false;
+        return this;
     }
 
     public void setLightSpeedCost(ItemStack cost, int costMultiplier) {

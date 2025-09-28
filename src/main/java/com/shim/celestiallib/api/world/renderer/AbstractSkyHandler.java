@@ -1,13 +1,18 @@
 package com.shim.celestiallib.api.world.renderer;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
 import com.shim.celestiallib.CelestialLib;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.FogRenderer;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.ISkyRenderHandler;
 
 import java.awt.*;
@@ -19,14 +24,86 @@ public abstract class AbstractSkyHandler implements ISkyRenderHandler {
     protected static final ResourceLocation MILKY_WAY_LOCATION = new ResourceLocation(CelestialLib.MODID, "textures/environment/milky_way.png");
     protected static final ResourceLocation RINGS_LOCATION = new ResourceLocation(CelestialLib.MODID, "textures/environment/rings.png");
 
+    @Override
+    public void render(int ticks, float partialTick, PoseStack poseStack, ClientLevel level, Minecraft minecraft) {
+        RenderSystem.disableTexture();
+        Vec3 vec3 = level.getSkyColor(minecraft.gameRenderer.getMainCamera().getPosition(), partialTick);
+        float f10 = (float) vec3.x;
+        float f = (float) vec3.y;
+        float f1 = (float) vec3.z;
+        FogRenderer.levelFogColor();
+        BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
+        RenderSystem.depthMask(false);
+        RenderSystem.setShaderColor(f10, f, f1, 1.0F);
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        float[] afloat = level.effects().getSunriseColor(level.getTimeOfDay(partialTick), partialTick);
+        if (afloat != null) {
+            RenderSystem.setShader(GameRenderer::getPositionColorShader);
+            RenderSystem.disableTexture();
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+            poseStack.pushPose();
+            poseStack.mulPose(Vector3f.XP.rotationDegrees(90.0F));
+            float f2 = Mth.sin(level.getSunAngle(partialTick)) < 0.0F ? 180.0F : 0.0F;
+            poseStack.mulPose(Vector3f.ZP.rotationDegrees(f2));
+            poseStack.mulPose(Vector3f.ZP.rotationDegrees(90.0F));
+            float f3 = afloat[0];
+            float f4 = afloat[1];
+            float f5 = afloat[2];
+            Matrix4f matrix4f = poseStack.last().pose();
+            bufferbuilder.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
+            bufferbuilder.vertex(matrix4f, 0.0F, 100.0F, 0.0F).color(f3, f4, f5, afloat[3]).endVertex();
+            int i = 16;
+
+            for (int j = 0; j <= 16; ++j) {
+                float f6 = (float) j * ((float) Math.PI * 2F) / 16.0F;
+                float f7 = Mth.sin(f6);
+                float f8 = Mth.cos(f6);
+                bufferbuilder.vertex(matrix4f, f7 * 120.0F, f8 * 120.0F, -f8 * 40.0F * afloat[3]).color(afloat[0], afloat[1], afloat[2], 0.0F).endVertex();
+            }
+
+            bufferbuilder.end();
+            BufferUploader.end(bufferbuilder);
+            poseStack.popPose();
+        }
+        RenderSystem.enableTexture();
+        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+
+    }
+
+    /**
+     * Render stars in the sky at all times
+     * @param poseStack
+     * @param level
+     * @param partialTick
+     */
     protected void renderStars(PoseStack poseStack, ClientLevel level, float partialTick) {
         renderStars(poseStack, level, partialTick, true);
     }
 
+    /**
+     * Render a sun in the sky using the vanilla sun texture
+     * @param poseStack
+     * @param level
+     * @param partialTick
+     * @param xRotation
+     * @param zRotation
+     * @param size
+     */
     protected void renderVanillaSun(PoseStack poseStack, ClientLevel level, float partialTick, float xRotation, float zRotation, float size) {
         renderSun(poseStack, level, partialTick, xRotation, zRotation, VANILLA_SUN_LOCATION, size);
     }
 
+    /**
+     * Render a sun in the sky aligned with daytime.
+     * @param poseStack
+     * @param level
+     * @param partialTick
+     * @param xRotation offset the x position
+     * @param zRotation offset the z position
+     * @param sun texture for the sun
+     * @param size how big the sun texture should appear in the sky
+     */
     protected void renderSun(PoseStack poseStack, ClientLevel level, float partialTick, float xRotation, float zRotation, ResourceLocation sun, float size) {
         poseStack.pushPose();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -52,7 +129,14 @@ public abstract class AbstractSkyHandler implements ISkyRenderHandler {
         poseStack.popPose();
     }
 
-    protected void renderStars(PoseStack p_109781_, ClientLevel level, float partialTick, boolean displayDuringDay) {
+    /**
+     * Render stars in the sky.
+     * @param poseStack
+     * @param level
+     * @param partialTick
+     * @param displayDuringDay set to true for stars to display during the day, i.e. at all times, or false to only be visible at night
+     */
+    protected void renderStars(PoseStack poseStack, ClientLevel level, float partialTick, boolean displayDuringDay) {
         RenderSystem.depthMask(false);
         RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
 
@@ -68,28 +152,28 @@ public abstract class AbstractSkyHandler implements ISkyRenderHandler {
         BufferBuilder bufferbuilder = tesselator.getBuilder();
 
         for(int i = 0; i < 6; ++i) {
-            p_109781_.pushPose();
+            poseStack.pushPose();
             if (i == 1) {
-                p_109781_.mulPose(Vector3f.XP.rotationDegrees(90.0F));
+                poseStack.mulPose(Vector3f.XP.rotationDegrees(90.0F));
             }
 
             if (i == 2) {
-                p_109781_.mulPose(Vector3f.XP.rotationDegrees(-90.0F));
+                poseStack.mulPose(Vector3f.XP.rotationDegrees(-90.0F));
             }
 
             if (i == 3) {
-                p_109781_.mulPose(Vector3f.XP.rotationDegrees(180.0F));
+                poseStack.mulPose(Vector3f.XP.rotationDegrees(180.0F));
             }
 
             if (i == 4) {
-                p_109781_.mulPose(Vector3f.ZP.rotationDegrees(90.0F));
+                poseStack.mulPose(Vector3f.ZP.rotationDegrees(90.0F));
             }
 
             if (i == 5) {
-                p_109781_.mulPose(Vector3f.ZP.rotationDegrees(-90.0F));
+                poseStack.mulPose(Vector3f.ZP.rotationDegrees(-90.0F));
             }
 
-            Matrix4f matrix4f = p_109781_.last().pose();
+            Matrix4f matrix4f = poseStack.last().pose();
 
             int color = 150; //100;
 
@@ -99,7 +183,7 @@ public abstract class AbstractSkyHandler implements ISkyRenderHandler {
             bufferbuilder.vertex(matrix4f, 100.0F, -100.0F, 100.0F).uv(2.0F, 2.0F).color(color, color, color, 255).endVertex();
             bufferbuilder.vertex(matrix4f, 100.0F, -100.0F, -100.0F).uv(2.0F, 0.0F).color(color, color, color, 255).endVertex();
             tesselator.end();
-            p_109781_.popPose();
+            poseStack.popPose();
         }
 
         RenderSystem.depthMask(true);
@@ -107,10 +191,31 @@ public abstract class AbstractSkyHandler implements ISkyRenderHandler {
         RenderSystem.disableBlend();
     }
 
+    /**
+     * Render a moon in the sky.  Allows you to pass in your own moon texture and x/z offsets to alter its position in the sky. Sets the size to 18.
+     * This is setup to take a texture that has 8 phases in it, like the vanilla moon texture.
+     * @param poseStack
+     * @param level
+     * @param partialTick
+     * @param xRotation offset the x position of the moon
+     * @param zRotation offset the z position of the moon
+     * @param moonTexture texture for the moon
+     */
     protected void renderMoon(PoseStack poseStack, ClientLevel level, float partialTick, float xRotation, float zRotation, ResourceLocation moonTexture) {
         renderMoon(poseStack, level, partialTick, xRotation, zRotation, moonTexture, 18.0F);
     }
 
+    /**
+     * Render a moon in the sky.  Allows you to pass in your own moon texture, texture size, and x/z offsets to alter its position in the sky.
+     * This is setup to take a texture that has 8 phases in it, like the vanilla moon texture.
+     * @param poseStack
+     * @param level
+     * @param partialTick
+     * @param xRotation offset the x position of the moon
+     * @param zRotation offset the z position of the moon
+     * @param moonTexture texture for the moon
+     * @param size how big for the texture to appear in the sky. A recommended size is 18.
+     */
     protected void renderMoon(PoseStack poseStack, ClientLevel level, float partialTick, float xRotation, float zRotation, ResourceLocation moonTexture, float size) {
         poseStack.pushPose();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -157,6 +262,13 @@ public abstract class AbstractSkyHandler implements ISkyRenderHandler {
         poseStack.popPose();
     }
 
+    /**
+     * Render a Milky Way texture in the sky
+     * @param poseStack
+     * @param level
+     * @param partialTick
+     * @param displayDuringDay
+     */
     protected void renderMilkyWay(PoseStack poseStack, ClientLevel level, float partialTick, boolean displayDuringDay) {
         RenderSystem.depthMask(false);
         RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
@@ -217,6 +329,13 @@ public abstract class AbstractSkyHandler implements ISkyRenderHandler {
         RenderSystem.disableBlend();
     }
 
+    /**
+     * Display rings in the sky
+     * @param poseStack
+     * @param level
+     * @param partialTick
+     * @param hexColor takes in a String of a hexcolor, formatted 0x000000, to apply an overlay color to the rings texture
+     */
     protected void renderRings(PoseStack poseStack, ClientLevel level, float partialTick, String hexColor) {
         RenderSystem.depthMask(false);
         RenderSystem.setShader(GameRenderer::getPositionTexColorShader);

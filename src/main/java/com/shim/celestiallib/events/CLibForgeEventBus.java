@@ -120,7 +120,6 @@ public class CLibForgeEventBus {
                     //now we determine what planet (or moon) we should teleport to based off our general location and what block we're looking at
                     //first, find what block we can see
                     BlockHitResult hitResult;
-                    //TODO test if this fix worked?
                     if (spaceVehicle.is(player) || (spaceVehicle.isVehicle() && spaceVehicle.getControllingPassenger().is(player))) {
                         hitResult = (BlockHitResult) player.pick(flightCap.pickDistance(spaceVehicle), 0.0F, false);
                     } else {

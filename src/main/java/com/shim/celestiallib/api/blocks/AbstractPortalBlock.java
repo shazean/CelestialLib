@@ -48,10 +48,30 @@ public abstract class AbstractPortalBlock extends Block {
         registerDefaultState(stateDefinition.any().setValue(AXIS, Direction.Axis.X));
     }
 
+    /**
+     * @return The dimension (besides the Overworld) that this portal is linked to
+     */
     public abstract ResourceKey<Level> getLinkedDimension();
+
+    /**
+     * @return A new instance of PlanetPortalTeleporter
+     */
     public abstract PlanetPortalTeleporter getTeleporter(ServerLevel serverLevel);
+
+    /**
+     * @return The portal block associated with this portal. This block is an instance of this class.
+     */
     public abstract Block getPortalBlock();
+
+    /**
+     * @return Block tag of the blocks that can make up the frame of the portal.
+     * For example, a vanilla implementation of this would return a tag that contains the block obsidian.
+     */
     public abstract TagKey<Block> getPortalFrameBlock();
+
+    /**
+     * @return Particle for the portal to emit.
+     */
     public abstract SimpleParticleType getPortalParticle();
 
     @Override
