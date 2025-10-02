@@ -143,11 +143,14 @@ public class CLibForgeEventBus {
 
                                 //check to make sure destination isn't locked
                                 if (travelCap != null) {
-                                    if (travelCap.isCelestialLocked(Planet.getPlanet(destination))) {
-                                        //planet is locked, so cancel all travel
-                                        //display message to player so they know what's happening
-                                        TeleportUtil.displayLockedPlanetMessage(player, destination);
-                                        return;
+                                    //if destination is a real planet and not a datapack planet
+                                    if (Planet.getPlanet(destination) != null) {
+                                        if (travelCap.isCelestialLocked(Planet.getPlanet(destination))) {
+                                            //planet is locked, so cancel all travel
+                                            //display message to player so they know what's happening
+                                            TeleportUtil.displayLockedPlanetMessage(player, destination);
+                                            return;
+                                        }
                                     }
                                 }
 

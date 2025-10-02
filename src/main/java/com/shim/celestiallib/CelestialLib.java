@@ -1,6 +1,8 @@
 package com.shim.celestiallib;
 
 import com.mojang.logging.LogUtils;
+import com.shim.celestiallib.api.world.CLibNoiseSettings;
+import com.shim.celestiallib.api.world.biome.CLibBiomePresets;
 import com.shim.celestiallib.capabilities.CLibCapabilities;
 import com.shim.celestiallib.config.CLibCommonConfig;
 import com.shim.celestiallib.data.*;
@@ -44,6 +46,11 @@ public class CelestialLib {
 
         Galaxies.GALAXIES.register(modEventBus);
         Planets.PLANETS.register(modEventBus);
+
+//        CLibB.BIOMES.register(modEventBus);
+        CLibBiomePresets.BIOME_SOURCE.register(modEventBus);
+        CLibNoiseSettings.NOISES.register(modEventBus);
+
 
         modEventBus.addListener(CLibCapabilities::registerCapabilities);
 

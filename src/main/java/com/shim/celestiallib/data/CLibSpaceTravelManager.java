@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import com.shim.celestiallib.CelestialLib;
 import com.shim.celestiallib.api.world.planet.Planet;
 import com.shim.celestiallib.util.CelestialUtil;
+import com.shim.celestiallib.util.TeleportUtil;
 import com.shim.celestiallib.util.teleportation.CelestialCoordinateTeleport;
 import com.shim.celestiallib.util.teleportation.CelestialScaledTeleport;
 import com.shim.celestiallib.api.world.galaxy.Galaxy;
@@ -32,6 +33,7 @@ public class CLibSpaceTravelManager extends SimpleJsonResourceReloadListener {
     protected void apply(Map<ResourceLocation, JsonElement> elements, ResourceManager p_10794_, ProfilerFiller p_10795_) {
 
         CelestialUtil.clearDimensionLocations();
+        TeleportUtil.clearDatapackPlanets();
 
         elements.forEach((dimensionPath, element) -> {
 
@@ -60,6 +62,9 @@ public class CLibSpaceTravelManager extends SimpleJsonResourceReloadListener {
                 }
                 CelestialUtil.setDimensionLocation(dimension, new CelestialScaledTeleport(scale));
             }
+
+            TeleportUtil.addDatapackPlanet(dimension, galaxy);
+
         });
     }
 }

@@ -37,6 +37,22 @@ public class TeleportUtil {
         DIMENSION_STRUCTURE_BLOCKS.put(dimension, blocks);
     }
 
+    public static final Map<ResourceKey<Level>, Galaxy> DATAPACK_PLANETS = new HashMap<>();
+
+    public static void clearDatapackPlanets() {
+        DATAPACK_PLANETS.clear();
+    }
+
+    public static void addDatapackPlanet(ResourceKey<Level> datapackDimension, Galaxy galaxy) {
+        DATAPACK_PLANETS.put(datapackDimension, galaxy);
+    }
+
+    public static Galaxy getDatapackPlanetsGalaxy(ResourceKey<Level> datapackDimension) {
+        if (DATAPACK_PLANETS.containsKey(datapackDimension))
+            return DATAPACK_PLANETS.get(datapackDimension);
+        return null;
+    }
+
     public static void clearDimensionStructureBlocks() {
         DIMENSION_STRUCTURE_BLOCKS.clear();
     }
@@ -94,16 +110,20 @@ public class TeleportUtil {
 
         //check if we're in the general area of a planet
         for (ResourceKey<Level> loc : CelestialUtil.getPlanetLocations().keySet()) {
-            //limit to only planets and not any of the moons
-            if (!Planet.getPlanet(loc).isMoon()) {
                 Planet planetToCheck = Planet.getPlanet(loc);
 
-                if (planetToCheck == null) {
-                    CelestialLib.LOGGER.error("getTeleportLocation could not find planet for dimension {}", loc);
-                } else {
-                    //and eliminates planets that aren't in the galaxy we're in
-                    if (Planet.getPlanet(loc).getGalaxy() == galaxy) {
-                        planetChunkPos = CelestialUtil.getPlanetChunkCoordinates(loc);
+                //if we're a valid planet (but not a moon) OR a datapack planet
+                if (planetToCheck != null && !planetToCheck.isMoon() || DATAPACK_PLANETS.containsKey(loc)) {
+                    if (planetToCheck != null) {
+                        CelestialLib.LOGGER.debug("planetToCheck isn't null, planet is: " + loc);
+                        System.out.println("planetToCheck isn't null, planet is: " + loc);
+                    } else if (DATAPACK_PLANETS.containsKey(loc)) {
+                        CelestialLib.LOGGER.debug("is datapack planet, is: " + loc);
+                        System.out.println("is datapack planet, is: " + loc);
+                    }
+
+                    if ((planetToCheck != null && planetToCheck.getGalaxy() == galaxy) || (getDatapackPlanetsGalaxy(loc) == galaxy)) {
+                        planetChunkPos = CelestialUtil.getPlanetChunkCoordinates(loc, galaxy);
                         if (planetChunkPos == null)
                             CelestialLib.LOGGER.error("getTeleportLocation could not find location for planet {}", loc);
 
@@ -115,8 +135,35 @@ public class TeleportUtil {
                             break;
                         }
                     }
+                } else {
+                    CelestialLib.LOGGER.error("getTeleportLocation could not find planet for dimension {}", loc);
                 }
-            }
+
+//                if (planetToCheck == null) {
+//                    //check for a datapack planet
+//                    if (DATAPACK_PLANETS.containsKey(loc)) {
+//
+//                    }
+//
+//                    //if not a datapack planet, then print error
+//                    CelestialLib.LOGGER.error("getTeleportLocation could not find planet for dimension {}", loc);
+//                } else {
+//                    //and eliminates planets that aren't in the galaxy we're in
+//                    if (Planet.getPlanet(loc).getGalaxy() == galaxy) {
+//                        planetChunkPos = CelestialUtil.getPlanetChunkCoordinates(loc);
+//                        if (planetChunkPos == null)
+//                            CelestialLib.LOGGER.error("getTeleportLocation could not find location for planet {}", loc);
+//
+//                        ChunkPos locationChunk = new ChunkPos(new BlockPos(location.x, location.y, location.z));
+//
+//                        //check if we're somewhat nearby
+//                        if (CelestialUtil.isInRectangle(planetChunkPos.x, planetChunkPos.z, 6, locationChunk.x, locationChunk.z)) {
+//                            planet = loc;
+//                            break;
+//                        }
+//                    }
+//                }
+
         }
 
         if (planet == null) return null;
@@ -336,8 +383,17 @@ public class TeleportUtil {
                 return null;
             }
         } else { //not the overworld
+            //check for a properly registered planet…
             Planet planet = Planet.getPlanet(currentDimension);
-            return planet.getGalaxy().getDimension();
+            if (planet != null)
+                return planet.getGalaxy().getDimension();
+
+            //…or check for a datapack planet…
+            if (DATAPACK_PLANETS.containsKey(currentDimension))
+                return DATAPACK_PLANETS.get(currentDimension).getDimension();
+
+            //otherwise, return null
+            return null;
         }
     }
 }

@@ -112,6 +112,18 @@ public class CelestialUtil {
         PLANET_LOCATIONS.clear();
     }
 
+
+    public static ChunkPos getPlanetChunkCoordinates(ResourceKey<Level> planet, Galaxy galaxy) {
+        Vec3 coord = getPlanetLocation(planet);
+        if (coord == null) {
+            CelestialLib.LOGGER.error("Can't find planet location for " + planet + ". Probably missing spawn_chunk_coordinates from structures/planets file.");
+
+            return null;
+        }
+        int galaxyRatio = galaxy.getGalaxyRatio();
+        return new ChunkPos((int) coord.x * galaxyRatio, (int) coord.z * galaxyRatio);
+    }
+
     public static ChunkPos getPlanetChunkCoordinates(ResourceKey<Level> planet) {
         Vec3 coord = getPlanetLocation(planet);
         if (coord == null) {
@@ -242,4 +254,7 @@ public class CelestialUtil {
             }
         }
     }
+
+
+
 }
