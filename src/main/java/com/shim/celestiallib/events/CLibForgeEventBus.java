@@ -72,14 +72,26 @@ public class CLibForgeEventBus {
         //should player teleport to/from space logic
         if (!player.level.isClientSide()) {
             //check for ISpaceFlight capability. This is checked against both the player and the player's vehicle, if applicable
-            ISpaceFlight flightCap = CelestialLib.getCapability(player, CLibCapabilities.SPACE_FLIGHT_CAPABILITY);
-            if (flightCap != null) spaceVehicle = player;
-            else {
-                if (player.getVehicle() != null) {
-                    flightCap = CelestialLib.getCapability(player.getVehicle(), CLibCapabilities.SPACE_FLIGHT_CAPABILITY);
-                    if (flightCap != null) spaceVehicle = player.getVehicle();
-                }
+
+            ISpaceFlight flightCap;
+            if (player.getVehicle() != null) {
+                flightCap = CelestialLib.getCapability(player.getVehicle(), CLibCapabilities.SPACE_FLIGHT_CAPABILITY);
+                if (flightCap != null) spaceVehicle = player.getVehicle();
+            } else {
+                flightCap = CelestialLib.getCapability(player, CLibCapabilities.SPACE_FLIGHT_CAPABILITY);
+                if (flightCap != null) spaceVehicle = player;
             }
+
+//            ISpaceFlight flightCap = CelestialLib.getCapability(player, CLibCapabilities.SPACE_FLIGHT_CAPABILITY);
+//
+//            if (flightCap != null) spaceVehicle = player;
+//            else {
+//                if (player.getVehicle() != null) {
+//                    flightCap = CelestialLib.getCapability(player.getVehicle(), CLibCapabilities.SPACE_FLIGHT_CAPABILITY);
+//                    if (flightCap != null) spaceVehicle = player.getVehicle();
+//                }
+//            }
+
             //once we've acquired our capability, regardless of if it comes from the player or the vehicle…
             if (spaceVehicle != null) {
                 //this is the logic for traveling from a dimension TO its appropriate galaxy

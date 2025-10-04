@@ -110,34 +110,34 @@ public class TeleportUtil {
 
         //check if we're in the general area of a planet
         for (ResourceKey<Level> loc : CelestialUtil.getPlanetLocations().keySet()) {
-                Planet planetToCheck = Planet.getPlanet(loc);
+            Planet planetToCheck = Planet.getPlanet(loc);
 
-                //if we're a valid planet (but not a moon) OR a datapack planet
-                if (planetToCheck != null && !planetToCheck.isMoon() || DATAPACK_PLANETS.containsKey(loc)) {
-                    if (planetToCheck != null) {
-                        CelestialLib.LOGGER.debug("planetToCheck isn't null, planet is: " + loc);
-                        System.out.println("planetToCheck isn't null, planet is: " + loc);
-                    } else if (DATAPACK_PLANETS.containsKey(loc)) {
-                        CelestialLib.LOGGER.debug("is datapack planet, is: " + loc);
-                        System.out.println("is datapack planet, is: " + loc);
-                    }
-
-                    if ((planetToCheck != null && planetToCheck.getGalaxy() == galaxy) || (getDatapackPlanetsGalaxy(loc) == galaxy)) {
-                        planetChunkPos = CelestialUtil.getPlanetChunkCoordinates(loc, galaxy);
-                        if (planetChunkPos == null)
-                            CelestialLib.LOGGER.error("getTeleportLocation could not find location for planet {}", loc);
-
-                        ChunkPos locationChunk = new ChunkPos(new BlockPos(location.x, location.y, location.z));
-
-                        //check if we're somewhat nearby
-                        if (CelestialUtil.isInRectangle(planetChunkPos.x, planetChunkPos.z, 6, locationChunk.x, locationChunk.z)) {
-                            planet = loc;
-                            break;
-                        }
-                    }
-                } else {
-                    CelestialLib.LOGGER.error("getTeleportLocation could not find planet for dimension {}", loc);
+            //if we're a valid planet (but not a moon) OR a datapack planet
+            if (planetToCheck != null && !planetToCheck.isMoon() || DATAPACK_PLANETS.containsKey(loc)) {
+                if (planetToCheck != null) {
+                    CelestialLib.LOGGER.debug("planetToCheck isn't null, planet is: " + loc);
+                    System.out.println("planetToCheck isn't null, planet is: " + loc);
+                } else if (DATAPACK_PLANETS.containsKey(loc)) {
+                    CelestialLib.LOGGER.debug("is datapack planet, is: " + loc);
+                    System.out.println("is datapack planet, is: " + loc);
                 }
+
+                if ((planetToCheck != null && planetToCheck.getGalaxy() == galaxy) || (getDatapackPlanetsGalaxy(loc) == galaxy)) {
+                    planetChunkPos = CelestialUtil.getPlanetChunkCoordinates(loc, galaxy);
+                    if (planetChunkPos == null)
+                        CelestialLib.LOGGER.error("getTeleportLocation could not find location for planet {}", loc);
+
+                    ChunkPos locationChunk = new ChunkPos(new BlockPos(location.x, location.y, location.z));
+
+                    //check if we're somewhat nearby
+                    if (CelestialUtil.isInRectangle(planetChunkPos.x, planetChunkPos.z, 6, locationChunk.x, locationChunk.z)) {
+                        planet = loc;
+                        break;
+                    }
+                }
+            } else {
+                CelestialLib.LOGGER.error("getTeleportLocation could not find planet for dimension {}", loc);
+            }
 
 //                if (planetToCheck == null) {
 //                    //check for a datapack planet
@@ -278,8 +278,14 @@ public class TeleportUtil {
                     //so this is important to check
                     if (spaceVehicle instanceof Player) {
                         spaceVehicle.changeDimension(destinationWorld, new CelestialTeleporter(destinationWorld));
+                        if (!entityWorld.isClientSide)
+                            spaceVehicle.moveTo(locationInPlace.getX(), locationInPlace.getY(), locationInPlace.getZ(), spaceVehicle.getYRot(), spaceVehicle.getXRot());
+
                     } else {
                         newSpaceVehicle = spaceVehicle.changeDimension(destinationWorld, new CelestialTeleporter(destinationWorld));
+                        if (!entityWorld.isClientSide)
+                            newSpaceVehicle.moveTo(locationInPlace.getX(), locationInPlace.getY(), locationInPlace.getZ(), newSpaceVehicle.getYRot(), newSpaceVehicle.getXRot());
+
                     }
 
                     //this assumes that if the player is the spaceVehicle, that there are not additional passengers besides the player
@@ -293,9 +299,14 @@ public class TeleportUtil {
                                 if (passenger instanceof Player) {
                                     passenger.changeDimension(destinationWorld, new CelestialTeleporter(destinationWorld));
                                     newPassengers.add(passenger);
+                                    if (!entityWorld.isClientSide)
+                                        passenger.moveTo(locationInPlace.getX(), locationInPlace.getY(), locationInPlace.getZ(), passenger.getYRot(), passenger.getXRot());
+
                                 } else {
                                     newPassenger = passenger.changeDimension(destinationWorld, new CelestialTeleporter(destinationWorld));
                                     newPassengers.add(newPassenger);
+                                    if (!entityWorld.isClientSide)
+                                        newPassenger.moveTo(locationInPlace.getX(), locationInPlace.getY(), locationInPlace.getZ(), newPassenger.getYRot(), newPassenger.getXRot());
                                 }
                             }
 

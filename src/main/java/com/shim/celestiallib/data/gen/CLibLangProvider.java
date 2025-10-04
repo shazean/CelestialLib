@@ -36,6 +36,8 @@ public class CLibLangProvider extends LanguageProvider {
         add("menu.celestiallib.light_speed_travel.invalid", "Invalid location for light speed travel");
         add("menu.celestiallib.locked", "Locked");
 
+        add("space_travel.celestiallib.space_min_height", "Warning! Approaching dangerous depths of space!");
+
         add("key.categories.celestiallib.light_speed", "Light Speed Travel");
         add("key.celestiallib.light_speed_travel", "Open Light Speed Travel Menu");
 
