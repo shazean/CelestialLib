@@ -279,6 +279,7 @@ public class TeleportUtil {
                     if (spaceVehicle instanceof Player) {
                         spaceVehicle.changeDimension(destinationWorld, new CelestialTeleporter(destinationWorld));
                         if (!entityWorld.isClientSide)
+                            //redundancy for a chunk loading issue
                             spaceVehicle.moveTo(locationInPlace.getX(), locationInPlace.getY(), locationInPlace.getZ(), spaceVehicle.getYRot(), spaceVehicle.getXRot());
 
                     } else {

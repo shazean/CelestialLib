@@ -37,6 +37,10 @@ public class CLibBiomeFeatures {
                         .ambientMoodSound(AmbientMoodSettings.LEGACY_CAVE_SETTINGS).backgroundMusic(music).build()).mobSpawnSettings(spawnBuilder.build()).generationSettings(biomeBuilder.build()).build();
     }
 
+    protected static Biome biome(Biome.Precipitation precipitation, Biome.BiomeCategory category, float temperature, float downfall, int skyColor, int fogColor, int waterColor, int waterFogColor, int grassFoliageColor, MobSpawnSettings.Builder spawnBuilder, BiomeGenerationSettings.Builder biomeBuilder, @Nullable Music music, AmbientParticleSettings particle) {
+        return (new Biome.BiomeBuilder()).precipitation(precipitation).biomeCategory(category).temperature(temperature).downfall(downfall).specialEffects((new BiomeSpecialEffects.Builder()).waterColor(waterColor).waterFogColor(waterFogColor).fogColor(fogColor).skyColor(skyColor).grassColorOverride(grassFoliageColor).foliageColorOverride(grassFoliageColor).ambientParticle(particle).ambientMoodSound(AmbientMoodSettings.LEGACY_CAVE_SETTINGS).backgroundMusic(music).build()).mobSpawnSettings(spawnBuilder.build()).generationSettings(biomeBuilder.build()).build();
+    }
+
     public static void addCarversAndLakes(BiomeGenerationSettings.Builder biomeBuilder) {
         biomeBuilder.addCarver(GenerationStep.Carving.AIR, Carvers.CAVE);
         biomeBuilder.addCarver(GenerationStep.Carving.AIR, Carvers.CAVE_EXTRA_UNDERGROUND);
